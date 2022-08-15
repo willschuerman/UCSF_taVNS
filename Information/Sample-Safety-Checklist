@@ -6,7 +6,7 @@ Review the general safety measures prior to each stimulation session and follow 
 
  <center> <font size="10"> NEVER RUSH </font> </center>
 
-## If a problem occurs at any step, remember, STOP-SWITCH-REMOVE: 
+## If a problem occurs at any step: STOP-SWITCH-REMOVE: 
 
 1) STOP the script, 
 2) SWITCH to Voltage mode, 
@@ -62,7 +62,8 @@ Review the general safety measures prior to each stimulation session and follow 
 3. Plug in electrodes and conduct impedance test (quickly switch to Current mode and back, while watching whether red indicator light came on). 
     - If red light shines brightly, this indicates that impedance may be too high, which will limit effective stimulation. First, press putty/electrodes in more firmly and repeat impedance test. If red light still comes on, remove electrodes and start participant prep over from scratch.
 5. Tell the participant that you are going to find the right level to stimulate at for the experiment. To do so, stimulation will slowly increase in strength. Tell the participan to let you know (either verbally or by raising a hand) if they feel anything. Stimulation can feel like a tickling, tapping, or sudden warming sensation (or something else unique to the individual). Tell them to only respond if they are certain that they noticed the stimulation (false positives can often occur). 
-6.  Run singleStaircase.m. Pulse Width should be set to 200. Wait a moment for the script to start, then press the 1 key to deliver the first stimulation train. Slowly continue pressing (1) until the participant reports feeling stimulation (referred to as a 'reversal'). When that occurs, press (2). The amplitude will be reduced by -0.3mA before ramping up again. The script exits after eight reversals and displays the participant's threshold in the main window. 
+6.  Run singleStaircase.m. Pulse Width should be set to 200. Wait a moment for the script to start, then press the 1 key to deliver the first stimulation train. Slowly continue pressing (1) until the participant reports feeling stimulation (referred to as a 'reversal'). When that occurs, press (2). The amplitude will be reduced by -0.3mA, and then increased by 0.1mA on each successive stimulation train. The script exits after eight reversals and displays the participant's threshold in the main window. 
+    - The MATLAB version depends on having the window displaying numbers highlighted in order to record a button press. If this window disappears, hover the mouse over the Matlab icon and click on the appropriate window to bring it to the foreground. 
 7. When script is complete, switch to Voltage mode.
 8. Use singlestimtrain.m to test to whether the participant can feel stimulation at the target level. "AMP" should be set to -0.2mA below the participant's threshold. 
     - Call to function is `singleStimTrain(AMP, 30, 200, 15)`
