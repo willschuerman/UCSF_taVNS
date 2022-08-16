@@ -1,0 +1,11 @@
+﻿<batch STARST1>
+/ subjects = (1 of 2)
+/ file = "sartpractice.iqx"
+/ file = "sartT1.iqx"
+</batch>
+
+<batch STARST2>
+/ subjects = (2 of 2)
+/ file = "sartpractice.iqx"
+/ file = "sartT2.iqx"
+</batch>

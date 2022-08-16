@@ -1,0 +1,73 @@
+4.0362 	WARNING 	something important
+4.0363 	EXP 	something about the conditions
+4.0363 	DATA 	something about a response
+4.0363 	INFO 	something less important
+4.0372 	INFO 	Loaded monitor calibration from ['2020_06_19 14:10']
+4.0396 	WARNING 	User requested fullscreen with size [800 600], but screen is actually [1920, 1080]. Using actual size
+4.6608 	EXP 	Created window1 = Window(allowGUI=True, allowStencil=False, autoLog=True, backendConf=UNKNOWN, bitsMode=UNKNOWN, blendMode='avg', bpc=(8, 8, 8), color=array([-1, -1, -1]), colorSpace='rgb', depthBits=8, fullscr=<method-wrapper '__getattribute__' of attributeSetter object at 0x7fbf681fa668>, gamma=None, gammaErrorPolicy='raise', lms=UNKNOWN, monitor=<psychopy.monitors.calibTools.Monitor object at 0x7fbf8890fdd8>, multiSample=False, name='window1', numSamples=2, pos=[0.0, 0.0], screen=0, size=array([1920, 1080]), stencilBits=0, stereo=False, units='deg', useFBO=False, useRetina=False, viewOri=0.0, viewPos=None, viewScale=None, waitBlanking=True, winType='pyglet')
+4.6610 	EXP 	window1: mouseVisible = True
+0.0318 	EXP 	Created unnamed ImageStim = ImageStim(__class__=<class 'psychopy.visual.image.ImageStim'>, autoLog=True, color=array([1., 1., 1.]), colorSpace='rgb', contrast=1.0, depth=0, flipHoriz=False, flipVert=False, image='mask.png', interpolate=False, mask=None, maskParams=None, name='unnamed ImageStim', opacity=1, ori=0.0, pos=array([0., 0.]), size=array([0.2, 0.2]), texRes=128, units='height', win=Window(...))
+0.0398 	EXP 	Created unnamed TextStim = TextStim(__class__=<class 'psychopy.visual.text.TextStim'>, alignHoriz=method-wrapper(...), alignText='center', alignVert=method-wrapper(...), anchorHoriz='center', anchorVert='center', antialias=True, autoLog=True, bold=False, color=array([1., 1., 1.]), colorSpace='rgb', contrast=1.0, depth=0, flipHoriz=False, flipVert=False, font='Arial', fontFiles=[], height=0.05, italic=False, languageStyle='LTR', name='unnamed TextStim', opacity=1.0, ori=0.0, pos=array([0., 0.]), rgb=UNKNOWN, text='', units='height', win=Window(...), wrapWidth=1)
+0.0658 	EXP 	unnamed TextStim: autoDraw = False
+0.2970 	EXP 	unnamed TextStim: text = 'wait'
+0.2970 	EXP 	unnamed TextStim: text = 'wait'
+0.3811 	DATA 	Keypress: space
+0.6164 	EXP 	unnamed TextStim: text = 'wait'
+0.6164 	EXP 	unnamed TextStim: text = 'wait'
+1.1111 	DATA 	Keypress: space
+1.3474 	EXP 	unnamed TextStim: text = 'oh god'
+1.3474 	EXP 	unnamed TextStim: text = 'oh god'
+1.6047 	DATA 	Keypress: space
+1.8308 	EXP 	unnamed TextStim: text = 'please'
+1.8308 	EXP 	unnamed TextStim: text = 'please'
+2.0640 	DATA 	Keypress: space
+2.2997 	EXP 	unnamed TextStim: text = 'please'
+2.2997 	EXP 	unnamed TextStim: text = 'please'
+2.5085 	DATA 	Keypress: space
+2.7325 	EXP 	unnamed TextStim: text = 'stop'
+2.7325 	EXP 	unnamed TextStim: text = 'stop'
+2.9034 	DATA 	Keypress: space
+3.1307 	EXP 	unnamed TextStim: text = 'no really'
+3.1307 	EXP 	unnamed TextStim: text = 'no really'
+3.2590 	DATA 	Keypress: space
+3.4825 	EXP 	unnamed TextStim: text = 'stop'
+3.4825 	EXP 	unnamed TextStim: text = 'stop'
+3.6213 	DATA 	Keypress: space
+3.8475 	EXP 	unnamed TextStim: text = 'oh damn'
+3.8475 	EXP 	unnamed TextStim: text = 'oh damn'
+3.9408 	DATA 	Keypress: space
+4.1641 	EXP 	unnamed TextStim: text = 'fuck'
+4.1641 	EXP 	unnamed TextStim: text = 'fuck'
+4.2786 	DATA 	Keypress: space
+4.5138 	EXP 	unnamed TextStim: text = 'oh damn'
+4.5138 	EXP 	unnamed TextStim: text = 'oh damn'
+4.6070 	DATA 	Keypress: space
+4.8320 	EXP 	unnamed TextStim: text = 'oh damn'
+4.8320 	EXP 	unnamed TextStim: text = 'oh damn'
+4.9166 	DATA 	Keypress: space
+5.1490 	EXP 	unnamed TextStim: text = 'no'
+5.1490 	EXP 	unnamed TextStim: text = 'no'
+5.2359 	DATA 	Keypress: space
+5.4658 	EXP 	unnamed TextStim: text = 'no really'
+5.4658 	EXP 	unnamed TextStim: text = 'no really'
+5.5351 	DATA 	Keypress: space
+5.7659 	EXP 	unnamed TextStim: text = 'wait'
+5.7659 	EXP 	unnamed TextStim: text = 'wait'
+5.7712 	DATA 	Keypress: space
+5.9972 	EXP 	unnamed TextStim: text = 'no'
+5.9972 	EXP 	unnamed TextStim: text = 'no'
+6.0348 	DATA 	Keypress: space
+6.2656 	EXP 	unnamed TextStim: text = 'no'
+6.2656 	EXP 	unnamed TextStim: text = 'no'
+6.3446 	DATA 	Keypress: space
+6.5535 	DATA 	Keypress: space
+6.5806 	EXP 	unnamed TextStim: text = 'oh god'
+6.5806 	EXP 	unnamed TextStim: text = 'oh god'
+6.7672 	DATA 	Keypress: space
+6.9989 	EXP 	unnamed TextStim: text = 'fuck'
+6.9989 	EXP 	unnamed TextStim: text = 'fuck'
+7.3908 	DATA 	Keypress: space
+7.6153 	EXP 	unnamed TextStim: text = 'please'
+7.6153 	EXP 	unnamed TextStim: text = 'please'
+7.6995 	DATA 	Keypress: escape
+7.9771 	EXP 	window1: mouseVisible = True

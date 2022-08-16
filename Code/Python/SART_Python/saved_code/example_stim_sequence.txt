@@ -1,0 +1,10 @@
+'items':['nostim','nostim','nostim','nostim','nostim','nostim','nostim','nostim','nostim','nostim','stim','stim','stim','nogo','stim','stim','stim','nostim','nostim','nostim','nostim','nostim','nostim','nostim','nostim',
+'nostim','nostim','nostim','nostim','nostim','nostim','nostim','nostim','stim','stim','stim','nogo','stim','stim','stim','nogo','stim','stim','stim','nostim','nostim','nostim','stim','stim','stim',
+'nogo','stim','stim','stim','nostim','nostim','nostim','nostim','nostim','nostim','nostim','nostim','nostim','nostim','stim','stim','stim','nogo','stim','stim','stim','stim','nogo','stim','stim',
+'stim','nostim','nostim','nostim','nostim','nostim','nostim','nostim','nostim','nostim','nostim','nostim','nostim','nostim','nostim','stim','stim','stim','nogo','nogo','stim','stim','stim','nostim','nostim',
+'nostim','stim','stim','stim','nogo','stim','stim','stim','stim','stim','nogo','stim','stim','stim','stim','nogo','stim','stim','stim','nostim','stim','stim','stim','nogo','stim',
+'stim','stim','nostim','nostim','nostim','nostim','nostim','nostim','nostim','stim','stim','stim','nogo','stim','stim','stim','nostim','stim','stim','stim','nogo','stim','stim','stim','nostim',
+'nostim','nostim','nostim','stim','stim','stim','nogo','stim','nogo','stim','stim','nogo','stim','stim','stim','nostim','nostim','nostim','stim','stim','stim','nogo','stim','stim','stim',
+'stim','nogo','stim','stim','stim','nostim','nostim','nostim','nostim','nostim','nostim','nostim','nostim','nostim','nostim','nostim','nostim','nostim','stim','stim','stim','nogo','stim','stim','stim',
+'nogo','stim','nogo','stim','stim','stim','nostim','nostim','nostim','nostim','nostim','nostim','stim','stim','stim','nogo','nogo','stim','stim','stim','stim','nogo','stim','stim','stim'],
+'selectionmode':'sequence'
