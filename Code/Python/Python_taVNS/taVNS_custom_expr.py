@@ -57,6 +57,47 @@ def biphasic_waveform(amp, pw, ipd, sr):
     wf = np.append(wf,0) # ensure that last sample is zero
     return wf
 
+def biphasic_triangular_waveform(amp, pw, ipd, sr):
+# %
+# % amp [uA]        +----+
+# % pw  [us]        |    |
+# % ipd [us]        |    |
+# %                 |    |
+# % -------+    +---+    +-------
+# %        |    | \
+# % (amp)--|    |  (ipd)
+# %        |    |
+# %        +----+
+# %           \
+# %            (pw)
+# %
+# % ipd defaults to 0 us
+# % sr defaults 24414.0625 Hz
+
+# duration of a single pulse cycle is 
+# pw*2+ipd
+
+    # set divisor based on sampling rate
+    if sr < 1000:
+        divisor = 1e4
+    elif (sr >=1000) and (sr < 9999):
+        divisor = 1e5
+    elif (sr >= 10000) and (sr < 99999):
+        divisor = 1e6
+    elif sr >= 100000:
+        divisor = 1e7
+    
+    # get pulse width and ipd in samples for a given sampling rate
+    pws = np.ceil(pw*sr/divisor) 
+    ipds = np.ceil(ipd*sr/divisor)
+
+    # generate waveform
+    wf = np.zeros(int(pws*2+ipds))
+    wf[0:int(pws)] = -amp
+    wf[-int(pws):] = amp
+    wf = np.append(wf,0) # ensure that last sample is zero
+    return wf
+    
 
 def constant_rate_pulser(f, dur, sr):
 
@@ -72,15 +113,25 @@ def constant_rate_pulser(f, dur, sr):
 def MakeStimBuffer(params):
     #print params
     # %% generate the biphasic waveform
-    wf = biphasic_waveform(params["amp"], params["pw"],params['ipd'],params['sr'])
-    #print wf
-    # %% generate the train for the test block
-    # % create the 30Hz train
-    ptTest = constant_rate_pulser(params["freq"], params["duration_stim"],params['sr'])
-    #plt.plot(ptTest)
-    yTest = signal.convolve(ptTest, wf)
-    ypad = np.zeros(10) # add a small pad to beginning of buffer
-    yTest = np.concatenate((ypad, yTest),axis=0)
+    if params['waveshape'] == 'sine':
+        timevector = np.arange(0, params['duration_stim'], 1/params['sr'])
+        theta = 0
+        yTest = params['amp'] * np.sin(2 * np.pi * params['freq'] * timevector + theta)
+        yTest[0] = 0
+        yTest[-1] = 0
+    else:
+        if params['waveshape'] == 'square':
+            wf = biphasic_waveform(params["amp"], params["pw"],params['ipd'],params['sr'])
+        elif params['waveshape'] == 'triangle':
+            wf = biphasic_triangular_waveform(params["amp"], params["pw"],params['ipd'],params['sr'])
+        #print wf
+        # %% generate the train for the test block
+        # % create the 30Hz train
+        ptTest = constant_rate_pulser(params["freq"], params["duration_stim"],params['sr'])
+        #plt.plot(ptTest)
+        yTest = signal.convolve(ptTest, wf)
+        ypad = np.zeros(10) # add a small pad to beginning of buffer
+        yTest = np.concatenate((ypad, yTest),axis=0)
     # %% generate the buffer
     # buf = np.zeros((params["nchan"],len(yTest)))
     # buf[1,:] = np.tile(yTest,[1,1])
@@ -129,7 +180,7 @@ def get_expr_params():
     params = {}
     params.update({'duration_expr':duration_expr,'iti':iti,"duration_stim":duration_stim})
     params.update({"sr":44100, "amp":amp, "freq":freq, "pw":pw,'ipd':ipd})
-    params.update({'debug':debug})
+    params.update({'debug':debug,'waveshape':waveshape})
 
     buf = MakeStimBuffer(params)
     buf_time = np.arange(0,len(buf))/params['sr']
@@ -139,7 +190,7 @@ def get_expr_params():
     ax[1].plot(buf_time[buf_time<0.005],buf[buf_time<0.005])
     plt.show()
 
-    if ccbox(('Experiment will run for %d minutes (%d seconds). \nPress Continue to run experiment. \nPress Cancel to exit and start over.' % duration_expr/60, duration_expr),
+    if ccbox(f'Experiment will run for {duration_expr/60} minutes ({duration_expr} seconds). \nPress Continue to run experiment.\n Press Cancel to exit and start over.',
         'Please confirm'):
         pass
     else:
