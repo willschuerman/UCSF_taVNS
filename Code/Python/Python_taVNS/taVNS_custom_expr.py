@@ -94,18 +94,28 @@ def biphasic_triangular_waveform(amp, pw, ipd, sr):
     # generate waveform
     wf = np.zeros(int(pws*2+ipds))
     halfwave_length = len(wf[0:int(pws)])
-
+    print(pws)
     # still need to fix this
-    if halfwave_length%2==0:
-        pos_waveform = np.concatenate([np.linspace(0,-amp,round(pws/2)),np.linspace(-amp,0,round(pws/2))])
-        neg_waveform = np.concatenate([np.linspace(0,amp,round(pws/2)),np.linspace(amp,0,round(pws/2))])
+    if  pws==2:
+        neg_waveform = np.array([0, -amp])
+        pos_waveform = np.array([amp, 0])       
+    elif pws==1:
+        neg_waveform = np.array([-amp])
+        pos_waveform = np.array([amp])
+    elif halfwave_length%2==0: # if even number of samples, then triangle will not be equal
+        neg_waveform1 = np.linspace(0,-amp,round(pws/2)) # create the first part, going to maximum amplitude
+        neg_waveform2 = np.linspace(neg_waveform1[-2],0,round(pws/2)) # create the second part, based on first
+        neg_waveform = np.concatenate((neg_waveform1,neg_waveform2))
+        pos_waveform1 = np.linspace(0,amp,round(pws/2))
+        pos_waveform2 = np.linspace(pos_waveform1[-2],0,round(pws/2))
+        pos_waveform = np.concatenate((pos_waveform1,pos_waveform2))  
     else:
-        pos_waveform = np.concatenate([np.linspace(0,-amp,np.ceil(pws/2).astype(int)),np.linspace(-amp,0,np.floor(pws/2).astype(int))])
-        neg_waveform = np.concatenate([np.linspace(0,amp,np.ceil(pws/2).astype(int)),np.linspace(amp,0,np.floor(pws/2).astype(int))])
+        neg_waveform = np.concatenate([np.linspace(0,-amp, np.ceil(pws/2).astype(int))[0:-1],np.array([-amp]),np.linspace(-amp,0, np.floor(pws/2+1).astype(int))[1:]])
+        pos_waveform = np.concatenate([np.linspace(0,amp, np.ceil(pws/2).astype(int))[0:-1],np.array([amp]),np.linspace(amp,0, np.floor(pws/2+1).astype(int))[1:]])
 
 
-    wf[0:int(pws)] = pos_waveform
-    wf[-int(pws):] = neg_waveform
+    wf[0:int(pws)] = neg_waveform
+    wf[-int(pws):] = pos_waveform
     wf = np.append(wf,0) # ensure that last sample is zero
     return wf
     
