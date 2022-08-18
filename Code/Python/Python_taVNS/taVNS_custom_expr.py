@@ -93,8 +93,19 @@ def biphasic_triangular_waveform(amp, pw, ipd, sr):
 
     # generate waveform
     wf = np.zeros(int(pws*2+ipds))
-    wf[0:int(pws)] = -amp
-    wf[-int(pws):] = amp
+    halfwave_length = len(wf[0:int(pws)])
+
+    # still need to fix this
+    if halfwave_length%2==0:
+        pos_waveform = np.concatenate([np.linspace(0,-amp,round(pws/2)),np.linspace(-amp,0,round(pws/2))])
+        neg_waveform = np.concatenate([np.linspace(0,amp,round(pws/2)),np.linspace(amp,0,round(pws/2))])
+    else:
+        pos_waveform = np.concatenate([np.linspace(0,-amp,np.ceil(pws/2).astype(int)),np.linspace(-amp,0,np.floor(pws/2).astype(int))])
+        neg_waveform = np.concatenate([np.linspace(0,amp,np.ceil(pws/2).astype(int)),np.linspace(amp,0,np.floor(pws/2).astype(int))])
+
+
+    wf[0:int(pws)] = pos_waveform
+    wf[-int(pws):] = neg_waveform
     wf = np.append(wf,0) # ensure that last sample is zero
     return wf
     
