@@ -34,6 +34,7 @@ expInfo = {
     'subject':'test',
     'amplitude':0.1,
     'pulse width':200,
+    'debug':False
 }
 
 dlg = gui.DlgFromDict(expInfo, title='SART Task', fixed=['dateStr'])
@@ -383,7 +384,7 @@ def debug_trial(params, nreversals, buf):
 def expr(expInfo):
     global defaults
 
-    debug = True # change to True to run without stimulation
+    debug = expInfo['debug'] # change to True to run without stimulation
     # set tVNS params
     params = {}
     params.update({"sr":24000.00, "amp":expInfo['amplitude'], "freq":25, "pw":expInfo['pulse width'], 'npulse':50})
