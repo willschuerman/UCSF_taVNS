@@ -12,7 +12,7 @@ import seaborn as sns
 os.chdir('../../..')
 os.chdir('Data')
 #%%
-filename = 'tVNS_AC_HRV analysis.xlsx'
+filename = 'tVNS_Li_HRV analysis.xlsx'
 
 
 # %%

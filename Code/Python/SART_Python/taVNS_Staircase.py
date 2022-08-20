@@ -504,7 +504,7 @@ def expr(expInfo):
     core.quit()
 
 
-
+# Run Staircase
 expr(expInfo)
 
 
