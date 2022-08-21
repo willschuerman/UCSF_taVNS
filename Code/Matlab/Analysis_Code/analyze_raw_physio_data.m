@@ -40,4 +40,13 @@ flip = 0;
 plot(ANIN)
 vline(onsets,'r-')
 
-%%
+%% extract EKG around pulse periods
+subplot(3,1,1)
+plot(data.data(onsets(1)-10000:onsets(3),1))
+title('Stimulator Output')
+subplot(3,1,2)
+plot(data.data(onsets(1)-10000:onsets(3),2))
+title('ECG')
+subplot(3,1,3)
+plot(data.data(onsets(1)-10000:onsets(3),3))
+title('PPG')
