@@ -101,7 +101,6 @@ scatter(Si,peak_data(Si),'filled')
 % 2. Amplitude of R relative to Q.
 % 3. R-wave peak time (peak of R relative to Q)
 
-% We skip the first and last peak
 QRS_durations = zeros(length(peakloc)-2,1);
 R_amplitudes = zeros(length(peakloc)-2,1);
 R_wave_peak_times = zeros(length(peakloc)-2,1);
@@ -130,8 +129,9 @@ for Ri = 2:length(peakloc)-1
     R_wave_peak_times(Ri) = r_wave_peak_time;
 end
 
+
 %% Event-related analysis of ECG
-% for each trial, define a stim period (onset of stim up to 1/2 toward onset of
+% for each trial, define a stim period (onset of stim up to 1/2 towoard onset of
 % next stim). 
 rr_intervals = nan(length(onsets)-1,2,3); % trials * window * parameter
 qrs_intervals = nan(length(onsets)-1,2,3); % trials * window * parameter
