@@ -9,7 +9,7 @@ set(0,'defaultfigurecolor',[1 1 1])
 % Baker & Baker, 1955:
 % -epinephrine and norepinephrine increase the magnitude of the QRS complex
 % (R_amplitude)
-% - 
+% -acetylcholine depresses the QRS-complex (R_amplitude)
 
 %% Add Current folder then Change directory to data folder
 addpath(genpath(pwd()))
