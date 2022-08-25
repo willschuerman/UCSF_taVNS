@@ -4,6 +4,13 @@
 % Script needs to start in the folder containing
 % 'analyze_raw_physio_data.m'
 set(0,'defaultfigurecolor',[1 1 1])
+
+%% Background 
+% Baker & Baker, 1955:
+% -epinephrine and norepinephrine increase the magnitude of the QRS complex
+% (R_amplitude)
+% - 
+
 %% Add Current folder then Change directory to data folder
 addpath(genpath(pwd()))
 cd(['..' filesep '..' filesep '..'])
@@ -94,7 +101,7 @@ hold on
 scatter(Qi,peak_data(Qi),'filled')
 scatter(Si,peak_data(Si),'filled')
 
-%% For each heart beat, extract the following
+%% For each heart beat, extract the following metrics
 % https://ecgwaves.com/topic/ecg-normal-p-wave-qrs-complex-st-segment-t-wave-j-point/
 % 1. Duration of QRS complex (note, due to ease of computation, Q and S are 
 % measured as the local minimum relative to R, not the zero-crossing).  
@@ -133,9 +140,12 @@ end
 %% Event-related analysis of ECG
 % for each trial, define a stim period (onset of stim up to 1/2 toward onset of
 % next stim). 
-rr_intervals = nan(length(onsets)-1,2,3); % trials * window * parameter
-qrs_intervals = nan(length(onsets)-1,2,3); % trials * window * parameter
-npeaks = nan(length(onsets)-1,2,3);
+mean_RRintervals = nan(length(onsets)-1,2,3); % trials * window * parameter
+npeaks = nan(length(onsets)-1,2,3); 
+
+mean_QRS = nan(length(onsets)-1,2,3); % trials * window * parameter
+mean_Ramp = nan(length(onsets)-1,2,3); % trials * window * parameter
+mean_Rwavepeaktime = nan(length(onsets)-1,2,3); % trials * window * parameter
 
 for tr = 1:length(onsets)-1
     stim_start = onsets(tr);
@@ -147,41 +157,62 @@ for tr = 1:length(onsets)-1
     nostim_locs = peakloc(peakloc>=half_sample & peakloc<next_stim_start);
     
     % get average distance between peaks during stim and non-stim periods
-    if stim_start >= stim_period_onsets(3)
-        rr_intervals(tr,1,3) = mean(diff(stim_locs));
+    if stim_start >= stim_period_onsets(3) % third stim period
+        mean_RRintervals(tr,1,3) = mean(diff(stim_locs));
         npeaks(tr,1,3) = length(diff(stim_locs));
-        rr_intervals(tr,2,3) = mean(diff(nostim_locs));
+        mean_RRintervals(tr,2,3) = mean(diff(nostim_locs));
         npeaks(tr,2,3) = length(diff(nostim_locs));
-    elseif stim_start >= stim_period_onsets(2)
-        rr_intervals(tr,1,2) = mean(diff(stim_locs));
-        npeaks(tr,1,2) = length(diff(stim_locs));
-        rr_intervals(tr,2,2) = mean(diff(nostim_locs));
-        npeaks(tr,2,2) = length(diff(nostim_locs));
-    else
-        rr_intervals(tr,1,1) = mean(diff(stim_locs));
-        npeaks(tr,1,1) = length(diff(stim_locs));
-        rr_intervals(tr,2,1) = mean(diff(nostim_locs));
-        npeaks(tr,2,1) = length(diff(nostim_locs));
-    end
 
-    % get mean qrs duration for stim vs nostim
-    qrs_values = [];
-    for s = 1:length(stim_locs)
-        peak_data = data.data(stim_locs(s)-10000:stim_locs(s)+10000,2);
-        localmins = islocalmin(peak_data(1:round(nsamples/2)),'MinProminence',0.01);
-        Qi = max(find(localmins));
-        localmins = islocalmin(peak_data(round(nsamples/2):end),'MinProminence',0.01);
-        Si = round(nsamples/2)+min(find(localmins));
-        qrs_values(s) = Si-Qi;
+        % Get average QRS metrics for stim and non-stim periods
+        mean_QRS(tr,1,3) = mean(QRS_durations(peakloc>=stim_start & peakloc<half_sample)-1); % skipping first beat
+        mean_QRS(tr,2,3) = mean(QRS_durations(peakloc>=half_sample & peakloc<next_stim_start)-1); % skipping first beat
+        
+        mean_Ramp(tr,1,3) = mean(R_amplitudes(peakloc>=stim_start & peakloc<half_sample)-1); % skipping first beat
+        mean_Ramp(tr,2,3) = mean(R_amplitudes(peakloc>=half_sample & peakloc<next_stim_start)-1); % skipping first beat
+        
+        mean_Rwavepeaktime(tr,1,3) = mean(R_wave_peak_times(peakloc>=stim_start & peakloc<half_sample)-1); % skipping first beat
+        mean_Rwavepeaktime(tr,2,3) = mean(R_wave_peak_times(peakloc>=half_sample & peakloc<next_stim_start)-1); % skipping first beat
+        
+    elseif stim_start >= stim_period_onsets(2) % second stim period
+        mean_RRintervals(tr,1,2) = mean(diff(stim_locs));
+        npeaks(tr,1,2) = length(diff(stim_locs));
+        mean_RRintervals(tr,2,2) = mean(diff(nostim_locs));
+        npeaks(tr,2,2) = length(diff(nostim_locs));
+
+        % Get average QRS metrics for stim and non-stim periods
+        mean_QRS(tr,1,2) = mean(QRS_durations(peakloc>=stim_start & peakloc<half_sample)-1); % skipping first beat
+        mean_QRS(tr,2,2) = mean(QRS_durations(peakloc>=half_sample & peakloc<next_stim_start)-1); % skipping first beat
+        
+        mean_Ramp(tr,1,2) = mean(R_amplitudes(peakloc>=stim_start & peakloc<half_sample)-1); % skipping first beat
+        mean_Ramp(tr,2,2) = mean(R_amplitudes(peakloc>=half_sample & peakloc<next_stim_start)-1); % skipping first beat
+        
+        mean_Rwavepeaktime(tr,1,2) = mean(R_wave_peak_times(peakloc>=stim_start & peakloc<half_sample)-1); % skipping first beat
+        mean_Rwavepeaktime(tr,2,2) = mean(R_wave_peak_times(peakloc>=half_sample & peakloc<next_stim_start)-1); % skipping first beat
+        
+    else % first stim period
+        mean_RRintervals(tr,1,1) = mean(diff(stim_locs));
+        npeaks(tr,1,1) = length(diff(stim_locs));
+        mean_RRintervals(tr,2,1) = mean(diff(nostim_locs));
+        npeaks(tr,2,1) = length(diff(nostim_locs));
+
+        % Get average QRS metrics for stim and non-stim periods
+        mean_QRS(tr,1,1) = mean(QRS_durations(peakloc>=stim_start & peakloc<half_sample)-1); % skipping first beat
+        mean_QRS(tr,2,1) = mean(QRS_durations(peakloc>=half_sample & peakloc<next_stim_start)-1); % skipping first beat
+        
+        mean_Ramp(tr,1,1) = mean(R_amplitudes(peakloc>=stim_start & peakloc<half_sample)-1); % skipping first beat
+        mean_Ramp(tr,2,1) = mean(R_amplitudes(peakloc>=half_sample & peakloc<next_stim_start)-1); % skipping first beat
+        
+        mean_Rwavepeaktime(tr,1,1) = mean(R_wave_peak_times(peakloc>=stim_start & peakloc<half_sample)-1); % skipping first beat
+        mean_Rwavepeaktime(tr,2,1) = mean(R_wave_peak_times(peakloc>=half_sample & peakloc<next_stim_start)-1); % skipping first beat
+        
     end
-    mean_qrs = mean(qrs_values);
-    qrs_intervals(tr,2,1)
 
 end
-%% Plot event-related analysis
+%% Plot event related data
+target_metric = mean_Ramp; % mean_RRintervals, mean_QRS, mean_Ramp, mean_Rwavepeaktime
 
-subplot(1,3,1)
-tmp = squeeze(rr_intervals(:,:,1));
+subplot(2,3,1)
+tmp = squeeze(target_metric(:,:,1));
 tmp = tmp(~all(tmp==0,2),:);
 boxplot(tmp,notch=1)
 hold on
@@ -190,8 +221,8 @@ title('30Hz Stim')
 set(gca,'XTickLabel',{'Stim','NoStim'})
 set(gca,'FontName','Arial','FontSize',14)
 
-subplot(1,3,2)
-tmp = squeeze(rr_intervals(:,:,2));
+subplot(2,3,2)
+tmp = squeeze(target_metric(:,:,2));
 tmp = tmp(~all(tmp==0,2),:);
 boxplot(tmp,notch=1)
 hold on
@@ -200,8 +231,8 @@ title('1kHz Stim')
 set(gca,'XTickLabel',{'Stim','NoStim'})
 set(gca,'FontName','Arial','FontSize',14)
 
-subplot(1,3,3)
-tmp = squeeze(rr_intervals(:,:,3));
+subplot(2,3,3)
+tmp = squeeze(target_metric(:,:,3));
 tmp = tmp(~all(tmp==0,2),:);
 boxplot(tmp,notch=1)
 hold on
@@ -209,13 +240,10 @@ hline(nanmedian(tmp(:)),'k-')
 title('30Hz Stim - 500us IPD')
 set(gca,'XTickLabel',{'Stim','NoStim'})
 set(gca,'FontName','Arial','FontSize',14)
+ 
 
-linkaxes
-
-%% 
-
-subplot(1,3,1)
-tmp = squeeze(rr_intervals(:,:,1));
+subplot(2,3,4)
+tmp = squeeze(target_metric(:,:,1));
 tmp = tmp(~all(tmp==0,2),:);
 plot(tmp,'o')
 hold on
@@ -225,8 +253,8 @@ title('30Hz Stim')
 legend('stim','nostim')
 set(gca,'FontName','Arial','FontSize',14)
 
-subplot(1,3,2)
-tmp = squeeze(rr_intervals(:,:,2));
+subplot(2,3,5)
+tmp = squeeze(target_metric(:,:,2));
 tmp = tmp(~all(tmp==0,2),:);
 plot(tmp,'o')
 refline
@@ -235,8 +263,8 @@ hline(nanmedian(tmp(:)),'k-')
 title('1kHz Stim')
 set(gca,'FontName','Arial','FontSize',14)
 
-subplot(1,3,3)
-tmp = squeeze(rr_intervals(:,:,3));
+subplot(2,3,6)
+tmp = squeeze(target_metric(:,:,3));
 tmp = tmp(~all(tmp==0,2),:);
 plot(tmp,'o')
 hold on
@@ -244,4 +272,3 @@ hline(nanmedian(tmp(:)),'k-')
 refline
 title('30Hz Stim - 500us IPD')
 set(gca,'FontName','Arial','FontSize',14)
-linkaxes
