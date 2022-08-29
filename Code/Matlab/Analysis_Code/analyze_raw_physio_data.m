@@ -6,12 +6,14 @@
 set(0,'defaultfigurecolor',[1 1 1])
 
 %% Background 
-% Baker & Baker, 1955:
+% Baker & Baker, 1955: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5624990/
 % -epinephrine and norepinephrine increase the magnitude of the QRS complex
 % (R_amplitude)
 % -acetylcholine depresses the QRS-complex (R_amplitude)
 
-% https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5624990/
+% Buschmann et al., 1995: https://pubmed.ncbi.nlm.nih.gov/6160328/
+% -adrenaline and noradrenaline widen the QRS complex
+
 %% Add Current folder then Change directory to data folder
 addpath(genpath(pwd()))
 cd(['..' filesep '..' filesep '..'])
@@ -75,7 +77,7 @@ hold on
 scatter(samples(peakloc),data.data(peakloc,2))
 
 %% get onset and offset of stimulation periods
-stim_period_onsets = [onsets(1) onsets(1+find(diff(onsets)>mean(diff(onsets))*10))];
+stim_period_onsets = [onsets(1) onsets(1+find(diff(onsets)>nanmean(diff(onsets))*10))];
 plot(data.data(:,1))
 title('Stimulator Output')
 hold on
@@ -183,7 +185,7 @@ mean_Rwavepeaktime = nan(length(onsets)-1,2,3); % trials * window * parameter
 for tr = 1:length(onsets)-1
     stim_start = onsets(tr);
     next_stim_start = onsets(tr+1);
-    half_sample = floor(mean([stim_start, next_stim_start]));
+    half_sample = floor(nanmean([stim_start, next_stim_start]));
 
     % get locations of IBIs within stim and inter-stim period
     stim_locs = peakloc(peakloc>=stim_start & peakloc<half_sample);
@@ -191,56 +193,211 @@ for tr = 1:length(onsets)-1
     
     % get average distance between peaks during stim and non-stim periods
     if stim_start >= stim_period_onsets(3) % third stim period
-        mean_RRintervals(tr,1,3) = mean(diff(stim_locs));
+        mean_RRintervals(tr,1,3) = nanmean(diff(stim_locs));
         npeaks(tr,1,3) = length(diff(stim_locs));
-        mean_RRintervals(tr,2,3) = mean(diff(nostim_locs));
+        mean_RRintervals(tr,2,3) = nanmean(diff(nostim_locs));
         npeaks(tr,2,3) = length(diff(nostim_locs));
 
         % Get average QRS metrics for stim and non-stim periods
-        mean_QRS(tr,1,3) = mean(QRS_durations(peakloc>=stim_start & peakloc<half_sample)); 
-        mean_QRS(tr,2,3) = mean(QRS_durations(peakloc>=half_sample & peakloc<next_stim_start)); 
+        mean_QRS(tr,1,3) = nanmean(QRS_durations(peakloc>=stim_start & peakloc<half_sample)); 
+        mean_QRS(tr,2,3) = nanmean(QRS_durations(peakloc>=half_sample & peakloc<next_stim_start)); 
         
-        mean_Ramp(tr,1,3) = mean(R_amplitudes(peakloc>=stim_start & peakloc<half_sample)); 
-        mean_Ramp(tr,2,3) = mean(R_amplitudes(peakloc>=half_sample & peakloc<next_stim_start)); 
+        mean_Ramp(tr,1,3) = nanmean(R_amplitudes(peakloc>=stim_start & peakloc<half_sample)); 
+        mean_Ramp(tr,2,3) = nanmean(R_amplitudes(peakloc>=half_sample & peakloc<next_stim_start)); 
         
-        mean_Rwavepeaktime(tr,1,3) = mean(R_wave_peak_times(peakloc>=stim_start & peakloc<half_sample)); 
-        mean_Rwavepeaktime(tr,2,3) = mean(R_wave_peak_times(peakloc>=half_sample & peakloc<next_stim_start)); 
+        mean_Rwavepeaktime(tr,1,3) = nanmean(R_wave_peak_times(peakloc>=stim_start & peakloc<half_sample)); 
+        mean_Rwavepeaktime(tr,2,3) = nanmean(R_wave_peak_times(peakloc>=half_sample & peakloc<next_stim_start)); 
         
     elseif stim_start >= stim_period_onsets(2) % second stim period
-        mean_RRintervals(tr,1,2) = mean(diff(stim_locs));
+        mean_RRintervals(tr,1,2) = nanmean(diff(stim_locs));
         npeaks(tr,1,2) = length(diff(stim_locs));
-        mean_RRintervals(tr,2,2) = mean(diff(nostim_locs));
+        mean_RRintervals(tr,2,2) = nanmean(diff(nostim_locs));
         npeaks(tr,2,2) = length(diff(nostim_locs));
 
         % Get average QRS metrics for stim and non-stim periods
-        mean_QRS(tr,1,2) = mean(QRS_durations(peakloc>=stim_start & peakloc<half_sample));
-        mean_QRS(tr,2,2) = mean(QRS_durations(peakloc>=half_sample & peakloc<next_stim_start));
+        mean_QRS(tr,1,2) = nanmean(QRS_durations(peakloc>=stim_start & peakloc<half_sample));
+        mean_QRS(tr,2,2) = nanmean(QRS_durations(peakloc>=half_sample & peakloc<next_stim_start));
         
-        mean_Ramp(tr,1,2) = mean(R_amplitudes(peakloc>=stim_start & peakloc<half_sample));
-        mean_Ramp(tr,2,2) = mean(R_amplitudes(peakloc>=half_sample & peakloc<next_stim_start));
+        mean_Ramp(tr,1,2) = nanmean(R_amplitudes(peakloc>=stim_start & peakloc<half_sample));
+        mean_Ramp(tr,2,2) = nanmean(R_amplitudes(peakloc>=half_sample & peakloc<next_stim_start));
         
-        mean_Rwavepeaktime(tr,1,2) = mean(R_wave_peak_times(peakloc>=stim_start & peakloc<half_sample));
-        mean_Rwavepeaktime(tr,2,2) = mean(R_wave_peak_times(peakloc>=half_sample & peakloc<next_stim_start));
+        mean_Rwavepeaktime(tr,1,2) = nanmean(R_wave_peak_times(peakloc>=stim_start & peakloc<half_sample));
+        mean_Rwavepeaktime(tr,2,2) = nanmean(R_wave_peak_times(peakloc>=half_sample & peakloc<next_stim_start));
         
     else % first stim period
-        mean_RRintervals(tr,1,1) = mean(diff(stim_locs));
+        mean_RRintervals(tr,1,1) = nanmean(diff(stim_locs));
         npeaks(tr,1,1) = length(diff(stim_locs));
-        mean_RRintervals(tr,2,1) = mean(diff(nostim_locs));
+        mean_RRintervals(tr,2,1) = nanmean(diff(nostim_locs));
         npeaks(tr,2,1) = length(diff(nostim_locs));
 
         % Get average QRS metrics for stim and non-stim periods
-        mean_QRS(tr,1,1) = mean(QRS_durations(peakloc>=stim_start & peakloc<half_sample));
-        mean_QRS(tr,2,1) = mean(QRS_durations(peakloc>=half_sample & peakloc<next_stim_start));
+        mean_QRS(tr,1,1) = nanmean(QRS_durations(peakloc>=stim_start & peakloc<half_sample));
+        mean_QRS(tr,2,1) = nanmean(QRS_durations(peakloc>=half_sample & peakloc<next_stim_start));
         
-        mean_Ramp(tr,1,1) = mean(R_amplitudes(peakloc>=stim_start & peakloc<half_sample));
-        mean_Ramp(tr,2,1) = mean(R_amplitudes(peakloc>=half_sample & peakloc<next_stim_start));
+        mean_Ramp(tr,1,1) = nanmean(R_amplitudes(peakloc>=stim_start & peakloc<half_sample));
+        mean_Ramp(tr,2,1) = nanmean(R_amplitudes(peakloc>=half_sample & peakloc<next_stim_start));
         
-        mean_Rwavepeaktime(tr,1,1) = mean(R_wave_peak_times(peakloc>=stim_start & peakloc<half_sample));
-        mean_Rwavepeaktime(tr,2,1) = mean(R_wave_peak_times(peakloc>=half_sample & peakloc<next_stim_start));
+        mean_Rwavepeaktime(tr,1,1) = nanmean(R_wave_peak_times(peakloc>=stim_start & peakloc<half_sample));
+        mean_Rwavepeaktime(tr,2,1) = nanmean(R_wave_peak_times(peakloc>=half_sample & peakloc<next_stim_start));
         
     end
 
 end
+%% Plot event related data
+target_metric = mean_Rwavepeaktime; % mean_RRintervals, mean_QRS, mean_Ramp, mean_Rwavepeaktime
+
+subplot(2,3,1)
+tmp = squeeze(target_metric(:,:,1));
+tmp = tmp(~all(tmp==0,2),:);
+boxplot(tmp,notch=1)
+hold on
+hline(nanmedian(tmp(:)),'k-')
+title('30Hz Stim')
+set(gca,'XTickLabel',{'Stim','NoStim'})
+set(gca,'FontName','Arial','FontSize',14)
+
+subplot(2,3,2)
+tmp = squeeze(target_metric(:,:,2));
+tmp = tmp(~all(tmp==0,2),:);
+boxplot(tmp,notch=1)
+hold on
+hline(nanmedian(tmp(:)),'k-')
+title('1kHz Stim')
+set(gca,'XTickLabel',{'Stim','NoStim'})
+set(gca,'FontName','Arial','FontSize',14)
+
+subplot(2,3,3)
+tmp = squeeze(target_metric(:,:,3));
+tmp = tmp(~all(tmp==0,2),:);
+boxplot(tmp,notch=1)
+hold on
+hline(nanmedian(tmp(:)),'k-')
+title('30Hz Stim - 500us IPD')
+set(gca,'XTickLabel',{'Stim','NoStim'})
+set(gca,'FontName','Arial','FontSize',14)
+ 
+
+subplot(2,3,4)
+tmp = squeeze(target_metric(:,:,1));
+tmp = tmp(~all(tmp==0,2),:);
+plot(tmp,'o')
+hold on
+hline(nanmedian(tmp(:)),'k-')
+refline
+title('30Hz Stim')
+legend('stim','nostim')
+set(gca,'FontName','Arial','FontSize',14)
+
+subplot(2,3,5)
+tmp = squeeze(target_metric(:,:,2));
+tmp = tmp(~all(tmp==0,2),:);
+plot(tmp,'o')
+refline
+hold on
+hline(nanmedian(tmp(:)),'k-')
+title('1kHz Stim')
+set(gca,'FontName','Arial','FontSize',14)
+
+subplot(2,3,6)
+tmp = squeeze(target_metric(:,:,3));
+tmp = tmp(~all(tmp==0,2),:);
+plot(tmp,'o')
+hold on
+hline(nanmedian(tmp(:)),'k-')
+refline
+title('30Hz Stim - 500us IPD')
+set(gca,'FontName','Arial','FontSize',14)
+
+%% Compare metrics during stim blocks and non-stim blocks
+
+block_duration = 5*60*Fs; % in samples
+fake_onsets = onsets-block_duration;
+%% Event-related analysis of ECG
+% for each trial, define a stim period (onset of stim up to 1/2 toward onset of
+% next stim). 
+mean_RRintervals = nan(length(onsets)-1,2,3); % trials * window * parameter
+npeaks = nan(length(onsets)-1,2,3); 
+
+mean_QRS = nan(length(onsets)-1,2,3); % trials * window * parameter
+mean_Ramp = nan(length(onsets)-1,2,3); % trials * window * parameter
+mean_Rwavepeaktime = nan(length(onsets)-1,2,3); % trials * window * parameter
+
+for tr = 1:length(onsets)-1
+    % record data during verum stim
+    stim_start = onsets(tr);
+    next_stim_start = onsets(tr+1);
+    half_sample = next_stim_start - 100; % unlike previous analysis, use whole trial window
+
+    % get locations of IBIs within stim and inter-stim period
+    stim_locs = peakloc(peakloc>=stim_start & peakloc<half_sample);
+    
+    % get average distance between peaks during stim and non-stim periods
+    if stim_start >= stim_period_onsets(3) % third stim period
+        mean_RRintervals(tr,1,3) = nanmean(diff(stim_locs));
+        npeaks(tr,1,3) = length(diff(stim_locs));
+
+        % Get average QRS metrics for stim and non-stim periods
+        mean_QRS(tr,1,3) = nanmean(QRS_durations(peakloc>=stim_start & peakloc<half_sample)); 
+        mean_Ramp(tr,1,3) = nanmean(R_amplitudes(peakloc>=stim_start & peakloc<half_sample));
+        mean_Rwavepeaktime(tr,1,3) = nanmean(R_wave_peak_times(peakloc>=stim_start & peakloc<half_sample)); 
+        
+    elseif stim_start >= stim_period_onsets(2) % second stim period
+        mean_RRintervals(tr,1,2) = nanmean(diff(stim_locs));
+        npeaks(tr,1,2) = length(diff(stim_locs));
+        % Get average QRS metrics for stim and non-stim periods
+        mean_QRS(tr,1,2) = nanmean(QRS_durations(peakloc>=stim_start & peakloc<half_sample));
+        mean_Ramp(tr,1,2) = nanmean(R_amplitudes(peakloc>=stim_start & peakloc<half_sample));
+        mean_Rwavepeaktime(tr,1,2) = nanmean(R_wave_peak_times(peakloc>=stim_start & peakloc<half_sample));
+        
+    else % first stim period
+        mean_RRintervals(tr,1,1) = nanmean(diff(stim_locs));
+        npeaks(tr,1,1) = length(diff(stim_locs));
+
+        % Get average QRS metrics for stim and non-stim periods
+        mean_QRS(tr,1,1) = nanmean(QRS_durations(peakloc>=stim_start & peakloc<half_sample));
+        mean_Ramp(tr,1,1) = nanmean(R_amplitudes(peakloc>=stim_start & peakloc<half_sample));
+        mean_Rwavepeaktime(tr,1,1) = nanmean(R_wave_peak_times(peakloc>=stim_start & peakloc<half_sample));
+        
+    end
+
+    % record data during resting state (using same timing information)
+    stim_start = fake_onsets(tr);
+    next_stim_start = fake_onsets(tr+1);
+    half_sample = next_stim_start - 100; % unlike previous analysis, use whole trial window
+
+    % get locations of IBIs within stim and inter-stim period
+    stim_locs = peakloc(peakloc>=stim_start & peakloc<half_sample);
+    
+    % get average distance between peaks during stim and non-stim periods
+    if stim_start >= stim_period_onsets(2) % third non-stim period
+        mean_RRintervals(tr,2,3) = nanmean(diff(stim_locs));
+        npeaks(tr,2,3) = length(diff(stim_locs));
+
+        % Get average QRS metrics for stim and non-stim periods
+        mean_QRS(tr,2,3) = nanmean(QRS_durations(peakloc>=stim_start & peakloc<half_sample)); 
+        mean_Ramp(tr,2,3) = nanmean(R_amplitudes(peakloc>=stim_start & peakloc<half_sample));
+        mean_Rwavepeaktime(tr,2,3) = nanmean(R_wave_peak_times(peakloc>=stim_start & peakloc<half_sample)); 
+        
+    elseif stim_start >= stim_period_onsets(1) % second non-stim period
+        mean_RRintervals(tr,2,2) = nanmean(diff(stim_locs));
+        npeaks(tr,2,2) = length(diff(stim_locs));
+        % Get average QRS metrics for stim and non-stim periods
+        mean_QRS(tr,2,2) = nanmean(QRS_durations(peakloc>=stim_start & peakloc<half_sample));
+        mean_Ramp(tr,2,2) = nanmean(R_amplitudes(peakloc>=stim_start & peakloc<half_sample));
+        mean_Rwavepeaktime(tr,2,2) = nanmean(R_wave_peak_times(peakloc>=stim_start & peakloc<half_sample));
+        
+    else % first stim period
+        mean_RRintervals(tr,2,1) = nanmean(diff(stim_locs));
+        npeaks(tr,2,1) = length(diff(stim_locs));
+
+        % Get average QRS metrics for stim and non-stim periods
+        mean_QRS(tr,2,1) = nanmean(QRS_durations(peakloc>=stim_start & peakloc<half_sample));
+        mean_Ramp(tr,2,1) = nanmean(R_amplitudes(peakloc>=stim_start & peakloc<half_sample));
+        mean_Rwavepeaktime(tr,2,1) = nanmean(R_wave_peak_times(peakloc>=stim_start & peakloc<half_sample));
+        
+    end
+end
+
 %% Plot event related data
 target_metric = mean_Rwavepeaktime; % mean_RRintervals, mean_QRS, mean_Ramp, mean_Rwavepeaktime
 
