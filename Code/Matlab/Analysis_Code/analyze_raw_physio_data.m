@@ -11,6 +11,7 @@ set(0,'defaultfigurecolor',[1 1 1])
 % (R_amplitude)
 % -acetylcholine depresses the QRS-complex (R_amplitude)
 
+% https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5624990/
 %% Add Current folder then Change directory to data folder
 addpath(genpath(pwd()))
 cd(['..' filesep '..' filesep '..'])
@@ -19,7 +20,7 @@ cd('Data')
 %% Load data
 
 data = load(['Physiology_tests' filesep 'tVNS Danielle.mat']);
-
+Fs = 20000;
 %% get rid of bad data at end of experiment
 data.data = data.data(1:40210900,:);
 %% plot raw data
@@ -32,6 +33,7 @@ title('Electrocardiogram')
 subplot(3,1,3)
 plot(data.data(:,3))
 title('PPG')
+
 
 %% close windows
 close all
@@ -47,6 +49,7 @@ padtime=0;
 plot_debug=1;
 flip = 0;
 [onsets,offsets] = findStimulationPeriods(ANIN,ANIN_fs,stimFreq,hpFreq,on_threshold,min_dur,padtime,flip);
+
 %% display stimulation signal with onsets marked. 
 plot(ANIN)
 vline(onsets,'r-')
@@ -82,24 +85,42 @@ vline(stim_period_onsets,'r-')
 %% Visualize ECG metrics
 close all
 % extract a single pulse
-Ri = 500;
+Ri = 24;
 peak_data = data.data(peakloc(Ri)-10000:peakloc(Ri)+10000,2);
-peak_deriv = diff(peak_data);
+peak_data = peak_data - median(peak_data);
+
+% Because the start of the QRS complex sometimes does not dip just before
+% the R (no local minimum), we tilt the data to find the inflection point
+v = [1:length(peak_data); peak_data']';
+theta = 0.002; 
+rotation_matrix = [cosd(theta) -sind(theta); sind(theta) cosd(theta)];
+plot(v(:,1),v(:,2));
+hold on
+v = v*rotation_matrix;
+plot(v(:,1),v(:,2));
+peak_data_rotated = v(:,2);
+
+%peak_deriv = diff(peak_data);
 nsamples = length(peak_data);
 samps = 1:length(peak_data);
+t    = [0:nsamples-1]/Fs;
+winsize = round(0.06*Fs); % window for searching for Q and S
 
-% get Q and S position
-localmins = islocalmin(peak_data(1:round(nsamples/2)),'MinProminence',0.01);
-Qi = max(find(localmins));
-localmins = islocalmin(peak_data(round(nsamples/2):end),'MinProminence',0.01);
-Si = round(nsamples/2)+min(find(localmins));
+% Find R in window
+[R,TR] = max(peak_data_rotated);
 
-plot(samps,peak_data)
+plot(peak_data_rotated)
 hold on
-%scatter(samps(localmins),peak_data(localmins))
-%scatter(round(nsamples/2),peak_data(round(nsamples/2)))
-scatter(Qi,peak_data(Qi),'filled')
-scatter(Si,peak_data(Si),'filled')
+plot(TR-winsize:TR+winsize,peak_data_rotated(TR-winsize:TR+winsize))
+% Define Q as the minimum within window preceding R peak
+[Q,QR] = min(peak_data_rotated(TR-winsize:TR));
+QR = QR + TR-winsize;
+scatter(QR,Q,'filled')
+
+% Define S as the minimum within window following R peak
+[S,SR] = min(peak_data_rotated(TR:TR+winsize));
+SR = SR + TR;
+scatter(SR,S,'filled')
 
 %% For each heart beat, extract the following metrics
 % https://ecgwaves.com/topic/ecg-normal-p-wave-qrs-complex-st-segment-t-wave-j-point/
@@ -107,34 +128,46 @@ scatter(Si,peak_data(Si),'filled')
 % measured as the local minimum relative to R, not the zero-crossing).  
 % 2. Amplitude of R relative to Q.
 % 3. R-wave peak time (peak of R relative to Q)
+% 4. QR Slope
 
-% We skip the first and last peak
-QRS_durations = zeros(length(peakloc)-2,1);
-R_amplitudes = zeros(length(peakloc)-2,1);
-R_wave_peak_times = zeros(length(peakloc)-2,1);
+QRS_durations = zeros(length(peakloc),1);
+R_amplitudes = zeros(length(peakloc),1);
+R_wave_peak_times = zeros(length(peakloc),1);
+QR_slopes = zeros(length(peakloc),1);
 
-for Ri = 2:length(peakloc)-1
+for Ri = 2:length(peakloc)-1 % We skip the first and last peak
     % extract a single pulse
     peak_data = data.data(peakloc(Ri)-10000:peakloc(Ri)+10000,2);
-    peak_deriv = diff(peak_data);
+    peak_data = peak_data - median(peak_data);
+
+    % Because the start of the QRS complex sometimes does not dip just before
+    % the R (no local minimum), we tilt the data to find the inflection point
+    v = [1:length(peak_data); peak_data']';
+    theta = 0.002; 
+    rotation_matrix = [cosd(theta) -sind(theta); sind(theta) cosd(theta)];
+    v = v*rotation_matrix;
+    peak_data_rotated = v(:,2);
+
     nsamples = length(peak_data);
     samps = 1:length(peak_data);
 
-    % get Q and S position
-    localmins = islocalmin(peak_data(1:round(nsamples/2)),'MinProminence',0.01);
-    Qi = max(find(localmins));
-    localmins = islocalmin(peak_data(round(nsamples/2):end),'MinProminence',0.01);
-    Si = round(nsamples/2)+min(find(localmins));
+    % Get Q and S position
+    [Q,QR] = min(peak_data_rotated(TR-winsize:TR));
+    QR = QR + TR-winsize;
+    [S,SR] = min(peak_data_rotated(TR:TR+winsize));
+    SR = SR + TR;
 
     % 1. Duration of QRS complex
-    qrs_dur = Si-Qi;
+    qrs_dur = (SR-QR)/Fs;
     QRS_durations(Ri) = qrs_dur;
     % 2. R wave amplitude
-    r_amp = data.data(peakloc(Ri),2) - peak_data(Qi);
+    r_amp = data.data(peakloc(Ri),2) - peak_data(QR);
     R_amplitudes(Ri) = r_amp;
     % 3. R-wave peak time
-    r_wave_peak_time = round(length(peak_data)/2) - Qi;
+    r_wave_peak_time = (round(length(peak_data)/2) - QR)/Fs;
     R_wave_peak_times(Ri) = r_wave_peak_time;
+    % 4. QR_slope
+    qr_slope = (r_amp-peak_data(QR))/r_wave_peak_time;
 end
 
 %% Event-related analysis of ECG
@@ -164,14 +197,14 @@ for tr = 1:length(onsets)-1
         npeaks(tr,2,3) = length(diff(nostim_locs));
 
         % Get average QRS metrics for stim and non-stim periods
-        mean_QRS(tr,1,3) = mean(QRS_durations(peakloc>=stim_start & peakloc<half_sample)-1); % skipping first beat
-        mean_QRS(tr,2,3) = mean(QRS_durations(peakloc>=half_sample & peakloc<next_stim_start)-1); % skipping first beat
+        mean_QRS(tr,1,3) = mean(QRS_durations(peakloc>=stim_start & peakloc<half_sample)); 
+        mean_QRS(tr,2,3) = mean(QRS_durations(peakloc>=half_sample & peakloc<next_stim_start)); 
         
-        mean_Ramp(tr,1,3) = mean(R_amplitudes(peakloc>=stim_start & peakloc<half_sample)-1); % skipping first beat
-        mean_Ramp(tr,2,3) = mean(R_amplitudes(peakloc>=half_sample & peakloc<next_stim_start)-1); % skipping first beat
+        mean_Ramp(tr,1,3) = mean(R_amplitudes(peakloc>=stim_start & peakloc<half_sample)); 
+        mean_Ramp(tr,2,3) = mean(R_amplitudes(peakloc>=half_sample & peakloc<next_stim_start)); 
         
-        mean_Rwavepeaktime(tr,1,3) = mean(R_wave_peak_times(peakloc>=stim_start & peakloc<half_sample)-1); % skipping first beat
-        mean_Rwavepeaktime(tr,2,3) = mean(R_wave_peak_times(peakloc>=half_sample & peakloc<next_stim_start)-1); % skipping first beat
+        mean_Rwavepeaktime(tr,1,3) = mean(R_wave_peak_times(peakloc>=stim_start & peakloc<half_sample)); 
+        mean_Rwavepeaktime(tr,2,3) = mean(R_wave_peak_times(peakloc>=half_sample & peakloc<next_stim_start)); 
         
     elseif stim_start >= stim_period_onsets(2) % second stim period
         mean_RRintervals(tr,1,2) = mean(diff(stim_locs));
@@ -180,14 +213,14 @@ for tr = 1:length(onsets)-1
         npeaks(tr,2,2) = length(diff(nostim_locs));
 
         % Get average QRS metrics for stim and non-stim periods
-        mean_QRS(tr,1,2) = mean(QRS_durations(peakloc>=stim_start & peakloc<half_sample)-1); % skipping first beat
-        mean_QRS(tr,2,2) = mean(QRS_durations(peakloc>=half_sample & peakloc<next_stim_start)-1); % skipping first beat
+        mean_QRS(tr,1,2) = mean(QRS_durations(peakloc>=stim_start & peakloc<half_sample));
+        mean_QRS(tr,2,2) = mean(QRS_durations(peakloc>=half_sample & peakloc<next_stim_start));
         
-        mean_Ramp(tr,1,2) = mean(R_amplitudes(peakloc>=stim_start & peakloc<half_sample)-1); % skipping first beat
-        mean_Ramp(tr,2,2) = mean(R_amplitudes(peakloc>=half_sample & peakloc<next_stim_start)-1); % skipping first beat
+        mean_Ramp(tr,1,2) = mean(R_amplitudes(peakloc>=stim_start & peakloc<half_sample));
+        mean_Ramp(tr,2,2) = mean(R_amplitudes(peakloc>=half_sample & peakloc<next_stim_start));
         
-        mean_Rwavepeaktime(tr,1,2) = mean(R_wave_peak_times(peakloc>=stim_start & peakloc<half_sample)-1); % skipping first beat
-        mean_Rwavepeaktime(tr,2,2) = mean(R_wave_peak_times(peakloc>=half_sample & peakloc<next_stim_start)-1); % skipping first beat
+        mean_Rwavepeaktime(tr,1,2) = mean(R_wave_peak_times(peakloc>=stim_start & peakloc<half_sample));
+        mean_Rwavepeaktime(tr,2,2) = mean(R_wave_peak_times(peakloc>=half_sample & peakloc<next_stim_start));
         
     else % first stim period
         mean_RRintervals(tr,1,1) = mean(diff(stim_locs));
@@ -196,20 +229,20 @@ for tr = 1:length(onsets)-1
         npeaks(tr,2,1) = length(diff(nostim_locs));
 
         % Get average QRS metrics for stim and non-stim periods
-        mean_QRS(tr,1,1) = mean(QRS_durations(peakloc>=stim_start & peakloc<half_sample)-1); % skipping first beat
-        mean_QRS(tr,2,1) = mean(QRS_durations(peakloc>=half_sample & peakloc<next_stim_start)-1); % skipping first beat
+        mean_QRS(tr,1,1) = mean(QRS_durations(peakloc>=stim_start & peakloc<half_sample));
+        mean_QRS(tr,2,1) = mean(QRS_durations(peakloc>=half_sample & peakloc<next_stim_start));
         
-        mean_Ramp(tr,1,1) = mean(R_amplitudes(peakloc>=stim_start & peakloc<half_sample)-1); % skipping first beat
-        mean_Ramp(tr,2,1) = mean(R_amplitudes(peakloc>=half_sample & peakloc<next_stim_start)-1); % skipping first beat
+        mean_Ramp(tr,1,1) = mean(R_amplitudes(peakloc>=stim_start & peakloc<half_sample));
+        mean_Ramp(tr,2,1) = mean(R_amplitudes(peakloc>=half_sample & peakloc<next_stim_start));
         
-        mean_Rwavepeaktime(tr,1,1) = mean(R_wave_peak_times(peakloc>=stim_start & peakloc<half_sample)-1); % skipping first beat
-        mean_Rwavepeaktime(tr,2,1) = mean(R_wave_peak_times(peakloc>=half_sample & peakloc<next_stim_start)-1); % skipping first beat
+        mean_Rwavepeaktime(tr,1,1) = mean(R_wave_peak_times(peakloc>=stim_start & peakloc<half_sample));
+        mean_Rwavepeaktime(tr,2,1) = mean(R_wave_peak_times(peakloc>=half_sample & peakloc<next_stim_start));
         
     end
 
 end
 %% Plot event related data
-target_metric = mean_Ramp; % mean_RRintervals, mean_QRS, mean_Ramp, mean_Rwavepeaktime
+target_metric = mean_Rwavepeaktime; % mean_RRintervals, mean_QRS, mean_Ramp, mean_Rwavepeaktime
 
 subplot(2,3,1)
 tmp = squeeze(target_metric(:,:,1));
