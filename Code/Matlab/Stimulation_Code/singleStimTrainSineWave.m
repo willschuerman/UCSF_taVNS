@@ -35,7 +35,7 @@ Stim.Rate = params.sr;
 % Setup stimulation
 buf = MakeStimBuffer_sinewave(params);
 
-queueOutputData(Stim, buf');
+queueOutputData(Stim, buf);
 
 % initiate stimulation
 Stim.startForeground         % stim on
