@@ -487,7 +487,7 @@ title('Canal Stim 1')
 set(gca,'FontName','Arial','FontSize',14)
 
 subplot(2,4,8)
-tmp = squeeze(target_metric(:,:,3));
+tmp = squeeze(target_metric(:,:,4));
 tmp = tmp(~all(tmp==0,2),:);
 plot(tmp,'o')
 hold on
@@ -495,3 +495,47 @@ hline(nanmedian(tmp(:)),'k-')
 refline
 title('Canal Stim 2')
 set(gca,'FontName','Arial','FontSize',14)
+
+
+%% get metrics by minute over experiment
+
+t = (1:length(data.data(:,1)))/Fs;
+tm = t/60;
+
+meanRR = zeros(round(max(tm)),1);
+sdRR = zeros(round(max(tm)),1);
+
+
+for m = 1:max(tm)
+    if m ==max(tm)
+        index_start = find(tm>=m,1);
+        [~,index_stop] = max(tm);
+    else
+        index_start = find(tm>=m,1);
+        index_stop = find(tm>=m+1,1);
+    end
+    RRdiff = diff(peakloc(peakloc>=index_start & peakloc<=index_stop));
+    meanRR(m) = mean(RRdiff);
+    sdRR(m) = std(RRdiff);
+end
+%%
+subplot(2,1,1)
+boxplot(reshape(meanRR,5,8))
+hline(nanmedian(meanRR),'k-')
+title('Mean R-R Interval')
+set(gca,'XTickLabel',{'Baseline','Concha1','Rest','Concha2','Rest','Canal1','Rest','Canal2'})
+subplot(2,1,2)
+plot(meanRR,'o-')
+vline([5 10 15 20 25 30 35 40])
+xlabel('Time (minutes)')
+%%
+subplot(2,1,1)
+boxplot(reshape(sdRR,5,8))
+hline(nanmedian(sdRR),'k-')
+title('Mean R-R Interval')
+set(gca,'XTickLabel',{'Baseline','Concha1','Rest','Concha2','Rest','Canal1','Rest','Canal2'})
+subplot(2,1,2)
+plot(sdRR,'o-')
+vline([5 10 15 20 25 30 35 40])
+xlabel('Time (minutes)')
+

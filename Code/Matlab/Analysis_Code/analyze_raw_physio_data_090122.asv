@@ -373,7 +373,16 @@ for tr = 1:length(onsets)-1
     stim_locs = peakloc(peakloc>=stim_start & peakloc<half_sample);
     
     % get average distance between peaks during stim and non-stim periods
-    if stim_start >= stim_period_onsets(2) % third non-stim period
+    if stim_start >= stim_period_onsets(3) % third non-stim period
+        mean_RRintervals(tr,2,4) = nanmean(diff(stim_locs));
+        npeaks(tr,2,4) = length(diff(stim_locs));
+
+        % Get average QRS metrics for stim and non-stim periods
+        mean_QRS(tr,2,4) = nanmean(QRS_durations(peakloc>=stim_start & peakloc<half_sample)); 
+        mean_Ramp(tr,2,4) = nanmean(R_amplitudes(peakloc>=stim_start & peakloc<half_sample));
+        mean_Rwavepeaktime(tr,2,4) = nanmean(R_wave_peak_times(peakloc>=stim_start & peakloc<half_sample)); 
+        
+    elseif stim_start >= stim_period_onsets(2) % third non-stim period
         mean_RRintervals(tr,2,3) = nanmean(diff(stim_locs));
         npeaks(tr,2,3) = length(diff(stim_locs));
 
@@ -453,21 +462,21 @@ plot(tmp,'o')
 hold on
 hline(nanmedian(tmp(:)),'k-')
 refline
-title('30Hz Stim')
+title('Concha Stim 1')
 legend('stim','nostim')
 set(gca,'FontName','Arial','FontSize',14)
 
-subplot(2,3,6)
+subplot(2,4,6)
 tmp = squeeze(target_metric(:,:,2));
 tmp = tmp(~all(tmp==0,2),:);
 plot(tmp,'o')
 refline
 hold on
 hline(nanmedian(tmp(:)),'k-')
-title('1kHz Stim')
+title('Concha Stim 2')
 set(gca,'FontName','Arial','FontSize',14)
 
-subplot(2,3,7)
+subplot(2,4,7)
 tmp = squeeze(target_metric(:,:,3));
 tmp = tmp(~all(tmp==0,2),:);
 plot(tmp,'o')
@@ -477,8 +486,8 @@ refline
 title('Canal Stim 1')
 set(gca,'FontName','Arial','FontSize',14)
 
-subplot(2,3,8)
-tmp = squeeze(target_metric(:,:,3));
+subplot(2,4,8)
+tmp = squeeze(target_metric(:,:,4));
 tmp = tmp(~all(tmp==0,2),:);
 plot(tmp,'o')
 hold on
@@ -486,3 +495,35 @@ hline(nanmedian(tmp(:)),'k-')
 refline
 title('Canal Stim 2')
 set(gca,'FontName','Arial','FontSize',14)
+
+
+%% get metrics by minute over experiment
+
+t = (1:length(data.data(:,1)))/Fs;
+tm = t/60;
+
+meanRR = zeros(round(max(tm)),1);
+sdRR = zeros(round(max(tm)),1);
+
+
+for m = 1:max(tm)
+    if m ==max(tm)
+        index_start = find(tm>=m,1);
+        [~,index_stop] = max(tm);
+    else
+        index_start = find(tm>=m,1);
+        index_stop = find(tm>=m+1,1);
+    end
+    RRdiff = diff(peakloc(peakloc>=index_start & peakloc<=index_stop));
+    meanRR(m) = mean(RRdiff);
+    sdRR(m) = std(RRdiff);
+end
+%%
+subplot(2,1,1)
+boxplot(reshape(sdRR,5,8))
+set(gca,'XTickLabel',{})
+subplot(2,1,2)
+plot(sdRR,'o-')
+vline([5 10 15 20 25 30 35 40])
+text(1,max(sdRR),'Baseline')
+
