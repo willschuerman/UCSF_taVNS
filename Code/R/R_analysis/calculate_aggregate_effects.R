@@ -7,7 +7,7 @@ library(reshape)
 data_dir <- getwd()
 data_dir <- sub('/Code/R','/Data/Physiology_Tests',data_dir)
 
-file_names <- list.files(path=data_dir,pattern='*.xlsx')
+file_names <- list.files(path=data_dir,pattern='*s.xlsx')
 
 # prepare data
 make_table <- 1
