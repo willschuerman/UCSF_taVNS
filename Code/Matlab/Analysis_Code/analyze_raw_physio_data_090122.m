@@ -175,12 +175,12 @@ end
 %% Event-related analysis of ECG
 % for each trial, define a stim period (onset of stim up to 1/2 toward onset of
 % next stim). 
-mean_RRintervals = nan(length(onsets)-1,2,3); % trials * window * parameter
-npeaks = nan(length(onsets)-1,2,3); 
+mean_RRintervals = nan(length(onsets)-1,2,4); % trials * window * parameter
+npeaks = nan(length(onsets)-1,2,4); 
 
-mean_QRS = nan(length(onsets)-1,2,3); % trials * window * parameter
-mean_Ramp = nan(length(onsets)-1,2,3); % trials * window * parameter
-mean_Rwavepeaktime = nan(length(onsets)-1,2,3); % trials * window * parameter
+mean_QRS = nan(length(onsets)-1,2,4); % trials * window * parameter
+mean_Ramp = nan(length(onsets)-1,2,4); % trials * window * parameter
+mean_Rwavepeaktime = nan(length(onsets)-1,2,4); % trials * window * parameter
 
 for tr = 1:length(onsets)-1
     stim_start = onsets(tr);
@@ -192,7 +192,23 @@ for tr = 1:length(onsets)-1
     nostim_locs = peakloc(peakloc>=half_sample & peakloc<next_stim_start);
     
     % get average distance between peaks during stim and non-stim periods
-    if stim_start >= stim_period_onsets(3) % third stim period
+    if stim_start >= stim_period_onsets(4) % third stim period
+        mean_RRintervals(tr,1,4) = nanmean(diff(stim_locs));
+        npeaks(tr,1,4) = length(diff(stim_locs));
+        mean_RRintervals(tr,2,4) = nanmean(diff(nostim_locs));
+        npeaks(tr,2,4) = length(diff(nostim_locs));
+
+        % Get average QRS metrics for stim and non-stim periods
+        mean_QRS(tr,1,4) = nanmean(QRS_durations(peakloc>=stim_start & peakloc<half_sample)); 
+        mean_QRS(tr,2,4) = nanmean(QRS_durations(peakloc>=half_sample & peakloc<next_stim_start)); 
+        
+        mean_Ramp(tr,1,4) = nanmean(R_amplitudes(peakloc>=stim_start & peakloc<half_sample)); 
+        mean_Ramp(tr,2,4) = nanmean(R_amplitudes(peakloc>=half_sample & peakloc<next_stim_start)); 
+        
+        mean_Rwavepeaktime(tr,1,4) = nanmean(R_wave_peak_times(peakloc>=stim_start & peakloc<half_sample)); 
+        mean_Rwavepeaktime(tr,2,4) = nanmean(R_wave_peak_times(peakloc>=half_sample & peakloc<next_stim_start)); 
+            
+    elseif stim_start >= stim_period_onsets(3) % third stim period
         mean_RRintervals(tr,1,3) = nanmean(diff(stim_locs));
         npeaks(tr,1,3) = length(diff(stim_locs));
         mean_RRintervals(tr,2,3) = nanmean(diff(nostim_locs));
@@ -246,68 +262,47 @@ end
 %% Plot event related data
 target_metric = mean_RRintervals; % mean_RRintervals, mean_QRS, mean_Ramp, mean_Rwavepeaktime
 
-subplot(2,3,1)
+subplot(1,4,1)
 tmp = squeeze(target_metric(:,:,1));
 tmp = tmp(~all(tmp==0,2),:);
 boxplot(tmp,notch=1)
 hold on
 hline(nanmedian(tmp(:)),'k-')
-title('30Hz Stim')
+title('Concha Stim1')
 set(gca,'XTickLabel',{'Stim','NoStim'})
 set(gca,'FontName','Arial','FontSize',14)
 
-subplot(2,3,2)
+subplot(1,4,2)
 tmp = squeeze(target_metric(:,:,2));
 tmp = tmp(~all(tmp==0,2),:);
 boxplot(tmp,notch=1)
 hold on
 hline(nanmedian(tmp(:)),'k-')
-title('1kHz Stim')
+title('Concha Stim2')
 set(gca,'XTickLabel',{'Stim','NoStim'})
 set(gca,'FontName','Arial','FontSize',14)
 
-subplot(2,3,3)
+subplot(1,4,3)
 tmp = squeeze(target_metric(:,:,3));
 tmp = tmp(~all(tmp==0,2),:);
 boxplot(tmp,notch=1)
 hold on
 hline(nanmedian(tmp(:)),'k-')
-title('30Hz Stim - 500us IPD')
+title('Canal Stim1')
 set(gca,'XTickLabel',{'Stim','NoStim'})
 set(gca,'FontName','Arial','FontSize',14)
  
-
-subplot(2,3,4)
-tmp = squeeze(target_metric(:,:,1));
+subplot(1,4,4)
+tmp = squeeze(target_metric(:,:,4));
 tmp = tmp(~all(tmp==0,2),:);
-plot(tmp,'o')
+boxplot(tmp,notch=1)
 hold on
 hline(nanmedian(tmp(:)),'k-')
-refline
-title('30Hz Stim')
-legend('stim','nostim')
+title('Canal Stim2')
+set(gca,'XTickLabel',{'Stim','NoStim'})
 set(gca,'FontName','Arial','FontSize',14)
-
-subplot(2,3,5)
-tmp = squeeze(target_metric(:,:,2));
-tmp = tmp(~all(tmp==0,2),:);
-plot(tmp,'o')
-refline
-hold on
-hline(nanmedian(tmp(:)),'k-')
-title('1kHz Stim')
-set(gca,'FontName','Arial','FontSize',14)
-
-subplot(2,3,6)
-tmp = squeeze(target_metric(:,:,3));
-tmp = tmp(~all(tmp==0,2),:);
-plot(tmp,'o')
-hold on
-hline(nanmedian(tmp(:)),'k-')
-refline
-title('30Hz Stim - 500us IPD')
-set(gca,'FontName','Arial','FontSize',14)
-
+linkaxes
+ 
 %% Compare metrics during stim blocks and non-stim blocks
 
 block_duration = 5*60*Fs; % in samples
@@ -315,12 +310,12 @@ fake_onsets = onsets-block_duration;
 %% Event-related analysis of ECG
 % for each trial, define a stim period (onset of stim up to 1/2 toward onset of
 % next stim). 
-mean_RRintervals = nan(length(onsets)-1,2,3); % trials * window * parameter
-npeaks = nan(length(onsets)-1,2,3); 
+mean_RRintervals = nan(length(onsets)-1,2,4); % trials * window * parameter
+npeaks = nan(length(onsets)-1,2,4); 
 
-mean_QRS = nan(length(onsets)-1,2,3); % trials * window * parameter
-mean_Ramp = nan(length(onsets)-1,2,3); % trials * window * parameter
-mean_Rwavepeaktime = nan(length(onsets)-1,2,3); % trials * window * parameter
+mean_QRS = nan(length(onsets)-1,2,4); % trials * window * parameter
+mean_Ramp = nan(length(onsets)-1,2,4); % trials * window * parameter
+mean_Rwavepeaktime = nan(length(onsets)-1,2,4); % trials * window * parameter
 
 for tr = 1:length(onsets)-1
     % record data during verum stim
@@ -332,7 +327,16 @@ for tr = 1:length(onsets)-1
     stim_locs = peakloc(peakloc>=stim_start & peakloc<half_sample);
     
     % get average distance between peaks during stim and non-stim periods
-    if stim_start >= stim_period_onsets(3) % third stim period
+    if stim_start >= stim_period_onsets(4) % third stim period
+        mean_RRintervals(tr,1,4) = nanmean(diff(stim_locs));
+        npeaks(tr,1,4) = length(diff(stim_locs));
+
+        % Get average QRS metrics for stim and non-stim periods
+        mean_QRS(tr,1,4) = nanmean(QRS_durations(peakloc>=stim_start & peakloc<half_sample)); 
+        mean_Ramp(tr,1,4) = nanmean(R_amplitudes(peakloc>=stim_start & peakloc<half_sample));
+        mean_Rwavepeaktime(tr,1,4) = nanmean(R_wave_peak_times(peakloc>=stim_start & peakloc<half_sample)); 
+
+    elseif stim_start >= stim_period_onsets(3) % third stim period
         mean_RRintervals(tr,1,3) = nanmean(diff(stim_locs));
         npeaks(tr,1,3) = length(diff(stim_locs));
 
@@ -369,7 +373,16 @@ for tr = 1:length(onsets)-1
     stim_locs = peakloc(peakloc>=stim_start & peakloc<half_sample);
     
     % get average distance between peaks during stim and non-stim periods
-    if stim_start >= stim_period_onsets(2) % third non-stim period
+    if stim_start >= stim_period_onsets(3) % third non-stim period
+        mean_RRintervals(tr,2,4) = nanmean(diff(stim_locs));
+        npeaks(tr,2,4) = length(diff(stim_locs));
+
+        % Get average QRS metrics for stim and non-stim periods
+        mean_QRS(tr,2,4) = nanmean(QRS_durations(peakloc>=stim_start & peakloc<half_sample)); 
+        mean_Ramp(tr,2,4) = nanmean(R_amplitudes(peakloc>=stim_start & peakloc<half_sample));
+        mean_Rwavepeaktime(tr,2,4) = nanmean(R_wave_peak_times(peakloc>=stim_start & peakloc<half_sample)); 
+        
+    elseif stim_start >= stim_period_onsets(2) % third non-stim period
         mean_RRintervals(tr,2,3) = nanmean(diff(stim_locs));
         npeaks(tr,2,3) = length(diff(stim_locs));
 
@@ -399,66 +412,86 @@ for tr = 1:length(onsets)-1
 end
 
 %% Plot event related data
-target_metric = mean_Rwavepeaktime; % mean_RRintervals, mean_QRS, mean_Ramp, mean_Rwavepeaktime
+target_metric = mean_RRintervals; % mean_RRintervals, mean_QRS, mean_Ramp, mean_Rwavepeaktime
 
-subplot(2,3,1)
+subplot(2,4,1)
 tmp = squeeze(target_metric(:,:,1));
 tmp = tmp(~all(tmp==0,2),:);
 boxplot(tmp,notch=1)
 hold on
 hline(nanmedian(tmp(:)),'k-')
-title('30Hz Stim')
+title('Concha Stim 1')
 set(gca,'XTickLabel',{'Stim','NoStim'})
 set(gca,'FontName','Arial','FontSize',14)
 
-subplot(2,3,2)
+subplot(2,4,2)
 tmp = squeeze(target_metric(:,:,2));
 tmp = tmp(~all(tmp==0,2),:);
 boxplot(tmp,notch=1)
 hold on
 hline(nanmedian(tmp(:)),'k-')
-title('1kHz Stim')
+title('Concha Stim 2')
 set(gca,'XTickLabel',{'Stim','NoStim'})
 set(gca,'FontName','Arial','FontSize',14)
 
-subplot(2,3,3)
+subplot(2,4,3)
 tmp = squeeze(target_metric(:,:,3));
 tmp = tmp(~all(tmp==0,2),:);
 boxplot(tmp,notch=1)
 hold on
 hline(nanmedian(tmp(:)),'k-')
-title('30Hz Stim - 500us IPD')
+title('Canal Stim 1')
 set(gca,'XTickLabel',{'Stim','NoStim'})
 set(gca,'FontName','Arial','FontSize',14)
- 
 
-subplot(2,3,4)
+subplot(2,4,4)
+tmp = squeeze(target_metric(:,:,4));
+tmp = tmp(~all(tmp==0,2),:);
+boxplot(tmp,notch=1)
+hold on
+hline(nanmedian(tmp(:)),'k-')
+title('Canal Stim 2')
+set(gca,'XTickLabel',{'Stim','NoStim'})
+set(gca,'FontName','Arial','FontSize',14)
+  
+
+subplot(2,4,5)
 tmp = squeeze(target_metric(:,:,1));
 tmp = tmp(~all(tmp==0,2),:);
 plot(tmp,'o')
 hold on
 hline(nanmedian(tmp(:)),'k-')
 refline
-title('30Hz Stim')
+title('Concha Stim 1')
 legend('stim','nostim')
 set(gca,'FontName','Arial','FontSize',14)
 
-subplot(2,3,5)
+subplot(2,4,6)
 tmp = squeeze(target_metric(:,:,2));
 tmp = tmp(~all(tmp==0,2),:);
 plot(tmp,'o')
 refline
 hold on
 hline(nanmedian(tmp(:)),'k-')
-title('1kHz Stim')
+title('Concha Stim 2')
 set(gca,'FontName','Arial','FontSize',14)
 
-subplot(2,3,6)
+subplot(2,4,7)
 tmp = squeeze(target_metric(:,:,3));
 tmp = tmp(~all(tmp==0,2),:);
 plot(tmp,'o')
 hold on
 hline(nanmedian(tmp(:)),'k-')
 refline
-title('30Hz Stim - 500us IPD')
+title('Canal Stim 1')
+set(gca,'FontName','Arial','FontSize',14)
+
+subplot(2,4,8)
+tmp = squeeze(target_metric(:,:,3));
+tmp = tmp(~all(tmp==0,2),:);
+plot(tmp,'o')
+hold on
+hline(nanmedian(tmp(:)),'k-')
+refline
+title('Canal Stim 2')
 set(gca,'FontName','Arial','FontSize',14)
