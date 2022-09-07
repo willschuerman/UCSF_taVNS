@@ -46,10 +46,8 @@ for(f in file_names){
 
 data <- merge(data1,data2)
 
-data <- data[,c("Participant", "Minute","Mean Heart Rate", "RSA", "Mean IBI", "# of R's Found", 
-                "SDNN", "AVNN", "RMSSD", "NN50", "pNN50", "VLF Power", "VLF Peak Power Frequency", 
-                "LF Power", "LF Peak Power Frequency", "HF/RSA Power", "HF/RSA Peak Power Frequency", 
-                "LF/HF Ratio")]
+data <- data[,c("Participant", "Minute","Mean Heart Rate", "Mean IBI",  
+                "SDNN", "RMSSD", "NN50", "pNN50", "HF/RSA Power", "HF/RSA Peak Power Frequency")]
 data <- data[order(data$Minute),]
 
 # add in info on block types
@@ -61,8 +59,9 @@ data$BlockType[data$Minute > 15 & data$Minute<21] <- 'Concha30Hz-2'
 data$BlockType[data$Minute > 20 & data$Minute<26] <- 'Washout2'
 data$BlockType[data$Minute > 25 & data$Minute<31] <- 'Canal30Hz-1'
 data$BlockType[data$Minute > 30 & data$Minute<36] <- 'Washout3'
-data$BlockType[data$Minute > 36 & data$Minute<41] <- 'Canal30Hz-2'
-
+data$BlockType[data$Minute > 35 & data$Minute<=41] <- 'Canal30Hz-2'
+data$BlockType <- factor(data$BlockType, levels=c('Baseline','Concha30Hz-1','Washout1','Concha30Hz-2',
+                                                  'Washout2','Canal30Hz-1','Washout3','Canal30Hz-2'))
 
 # melt data
 data <- melt(data,id=c('BlockType','Minute','Participant'))
@@ -70,62 +69,97 @@ data <- melt(data,id=c('BlockType','Minute','Participant'))
 # normalize within participant and variable
 data <- data %>%
   group_by(Participant,variable) %>%
-  transform(value = scale(value))
+  mutate(value = scale(value))
 
-# calculate difference of means and medians 
-data.summary <- data %>% group_by(Participant,variable,BlockType) %>%
-  summarize(mean = mean(value),median=median(value))
-
-# compute effect sizes
-Concha30Hz1_mean <- data.summary$mean[data.summary$BlockType=='Concha30Hz-1'] - data.summary$mean[data.summary$BlockType=='Baseline']
-Concha30Hz1_median <- data.summary$median[data.summary$BlockType=='Concha30Hz-1'] - data.summary$median[data.summary$BlockType=='Baseline']
-Concha30Hz2_mean <- data.summary$mean[data.summary$BlockType=='Concha30Hz-2'] - data.summary$mean[data.summary$BlockType=='Washout1']
-Concha30Hz2_median <- data.summary$median[data.summary$BlockType=='Concha30Hz-2'] - data.summary$median[data.summary$BlockType=='Washout1']
-Canal30Hz1_mean <- data.summary$mean[data.summary$BlockType=='Canal30Hz-1'] - data.summary$mean[data.summary$BlockType=='Washout2']
-Canal30Hz1_median <- data.summary$median[data.summary$BlockType=='Canal30Hz-1'] - data.summary$median[data.summary$BlockType=='Washout2']
-Canal30Hz2_mean <- data.summary$mean[data.summary$BlockType=='Canal30Hz-2'] - data.summary$mean[data.summary$BlockType=='Washout3']
-Canal30Hz2_median <- data.summary$median[data.summary$BlockType=='Canal30Hz-2'] - data.summary$median[data.summary$BlockType=='Washout3']
-
-# calculate difference of means and medians 
-data.summary <- data %>% group_by(Participant,variable) %>% summarise()
-data.summary$Concha30Hz1_mean <- Concha30Hz1_mean
-data.summary$Concha30Hz1_median <- Concha30Hz1_median
-data.summary$Concha30Hz2_mean <- Concha30Hz2_mean
-data.summary$Concha30Hz2_median <- Concha30Hz2_median
-data.summary$Canal30Hz1_mean <- Canal30Hz1_mean
-data.summary$Canal30Hz1_median <- Canal30Hz1_median
-data.summary$Canal30Hz2_mean <- Canal30Hz2_mean
-data.summary$Canal30Hz2_median <- Canal30Hz2_median
-
-# re-melt data
-data.summary <- melt(as.data.frame(data.summary),id=c('Participant','variable'))
-names(data.summary) <- c('Participant','Variable','Effect','Value')
-
-
-data.summary$Effect <- factor(data.summary$Effect,levels = c("Concha30Hz1_mean", "Concha30Hz1_median", "Concha30Hz2_mean", 
-                                                             "Concha30Hz2_median", "Canal30Hz1_mean", "Canal30Hz1_median", 
-                                                             "Canal30Hz2_mean", "Canal30Hz2_median"))
-
-# plot difference in effect sizes
-
-data.summary %>% ggplot(aes(x=Effect,y=Value))+
+data %>% ggplot(aes(x=BlockType,y=value,color=BlockType))+
   geom_boxplot()+
-  geom_point(aes(x=Effect,y=Value,color=Participant))+
-  geom_hline(yintercept=0)+
-  facet_wrap('Variable',scales='free_y')+
+  #geom_point(aes(x=BlockType,y=value,color=Participant))+
+  #geom_hline(yintercept=0)+
+  facet_grid(variable~Participant,scales='free_y')+
   theme_bw()+
   theme(axis.text.x = element_text(angle = 90, vjust = -0.5, hjust=1))
 
-data.summary %>% ggplot(aes(x=Effect,y=Value))+
+data %>% ggplot(aes(x=BlockType,y=value))+
   geom_boxplot()+
-  geom_point(aes(x=Effect,y=Value,color=Participant))+
-  geom_hline(yintercept=0)+
-  facet_wrap('Variable',scales='free_y')+
+  #geom_point(aes(x=BlockType,y=value,color=Participant))+
+  #geom_hline(yintercept=0)+
+  facet_wrap('variable',scales='free_y')+
   theme_bw()+
   theme(axis.text.x = element_text(angle = 90, vjust = -0.5, hjust=1))
 
+data.summary <- data %>% group_by(Participant,BlockType,variable) %>% summarise(value=mean(value,na.rm=T))
+data.summary %>% ggplot(aes(x=BlockType,y=value,color=Participant,group=Participant))+
+  #geom_boxplot()+
+  geom_point()+
+  geom_line()+
+  facet_wrap('variable',scales='free_y')+
+  ggpubr::theme_pubclean()+
+  theme(axis.text.x = element_text(angle = 90, vjust = -0.5, hjust=1))
 
+data.summary <- data %>% group_by(BlockType,variable) %>% summarise(mean=mean(value,na.rm=T),std=sd(value,na.rm=T),n=n()) %>%
+  mutate(se=std/sqrt(n))
+data.summary %>% ggplot(aes(x=BlockType,y=mean,group=''))+
+  geom_point()+
+  geom_line()+
+  geom_hline(yintercept=0)+
+  geom_errorbar(aes(ymin=mean-se,ymax=mean+se),width=0.1)+
+  facet_wrap('variable',scales='free_y')+
+  ggpubr::theme_pubclean()+
+  theme(axis.text.x = element_text(angle = 90, vjust = -0.5, hjust=1))
+
+  
+
+
+
+
+#### Plot difference from previous block #####
 # 
+# 
+# # calculate difference of means and medians 
+# data.summary <- data %>% group_by(Participant,variable,BlockType) %>%
+#   summarize(mean = mean(value),median=median(value))
+# 
+# # compute effect sizes
+# Concha30Hz1_mean <- data.summary$mean[data.summary$BlockType=='Concha30Hz-1'] - data.summary$mean[data.summary$BlockType=='Baseline']
+# Concha30Hz1_median <- data.summary$median[data.summary$BlockType=='Concha30Hz-1'] - data.summary$median[data.summary$BlockType=='Baseline']
+# Concha30Hz2_mean <- data.summary$mean[data.summary$BlockType=='Concha30Hz-2'] - data.summary$mean[data.summary$BlockType=='Washout1']
+# Concha30Hz2_median <- data.summary$median[data.summary$BlockType=='Concha30Hz-2'] - data.summary$median[data.summary$BlockType=='Washout1']
+# Canal30Hz1_mean <- data.summary$mean[data.summary$BlockType=='Canal30Hz-1'] - data.summary$mean[data.summary$BlockType=='Washout2']
+# Canal30Hz1_median <- data.summary$median[data.summary$BlockType=='Canal30Hz-1'] - data.summary$median[data.summary$BlockType=='Washout2']
+# Canal30Hz2_mean <- data.summary$mean[data.summary$BlockType=='Canal30Hz-2'] - data.summary$mean[data.summary$BlockType=='Washout3']
+# Canal30Hz2_median <- data.summary$median[data.summary$BlockType=='Canal30Hz-2'] - data.summary$median[data.summary$BlockType=='Washout3']
+# 
+# # calculate difference of means and medians 
+# data.summary <- data %>% group_by(Participant,variable) %>% summarise()
+# data.summary$Concha30Hz1_mean <- Concha30Hz1_mean
+# data.summary$Concha30Hz1_median <- Concha30Hz1_median
+# data.summary$Concha30Hz2_mean <- Concha30Hz2_mean
+# data.summary$Concha30Hz2_median <- Concha30Hz2_median
+# data.summary$Canal30Hz1_mean <- Canal30Hz1_mean
+# data.summary$Canal30Hz1_median <- Canal30Hz1_median
+# data.summary$Canal30Hz2_mean <- Canal30Hz2_mean
+# data.summary$Canal30Hz2_median <- Canal30Hz2_median
+# 
+# # re-melt data
+# data.summary <- melt(as.data.frame(data.summary),id=c('Participant','variable'))
+# names(data.summary) <- c('Participant','Variable','Effect','Value')
+# 
+# 
+# data.summary$Effect <- factor(data.summary$Effect,levels = c("Concha30Hz1_mean", "Concha30Hz1_median", "Concha30Hz2_mean", 
+#                                                              "Concha30Hz2_median", "Canal30Hz1_mean", "Canal30Hz1_median", 
+#                                                              "Canal30Hz2_mean", "Canal30Hz2_median"))
+# 
+# # plot difference in effect sizes
+# 
+# data.summary %>% ggplot(aes(x=Effect,y=Value))+
+#   geom_boxplot()+
+#   geom_point(aes(x=Effect,y=Value,color=Participant))+
+#   geom_hline(yintercept=0)+
+#   facet_wrap('Variable',scales='free_y')+
+#   theme_bw()+
+#   theme(axis.text.x = element_text(angle = 90, vjust = -0.5, hjust=1))
+# 
+# # 
 # ####
 # 
 # # calculate difference of means and medians 

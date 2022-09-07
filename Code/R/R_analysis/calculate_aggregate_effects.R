@@ -68,7 +68,7 @@ data <- melt(data,id=c('BlockType','Minute','Participant'))
 # normalize within participant and variable
 data <- data %>%
   group_by(Participant,variable) %>%
-  transform(value = scale(value))
+  mutate(value = scale(value))
 
 # calculate difference of means and medians 
 data.summary <- data %>% group_by(Participant,variable,BlockType) %>%
