@@ -1,8 +1,9 @@
-library(tidyverse)
 library(readxl)
 library(stringr)
 library(hablar)
 library(reshape)
+library(Hmisc)
+library(tidyverse)
 
 data_dir <- getwd()
 data_dir <- sub('/Code/R','/Data/Physiology_Tests',data_dir)
@@ -13,101 +14,129 @@ file_names <- list.files(path=data_dir,pattern='*2022.xlsx')
 make_table <- 1
 for(f in file_names){
   tmp <- read_excel(str_c(data_dir,'/',f),sheet='HRV Stats',n_max=25)
-  tmp <- as_tibble(t(tmp))
+  tmp <- as_tibble(t(tmp),name_repair=T)
   names(tmp) <- as.character(as.vector(tmp[1,]))
   tmp <- tmp[-1,]
   tmp$Minute <- as.numeric(row.names(tmp))
   tmp <- tmp %>% retype()
   tmp$Participant <- substr(f,6,7)
-  if(make_table==1){
-    data1 <- tmp
-    make_table=0
-  }else{
-    data1 <- rbind(data1,tmp)
-  }
-}
-make_table <- 1
-for(f in file_names){
-  tmp <- read_excel(str_c(data_dir,'/',f),sheet='Power Band Stats',n_max=9)
-  tmp <- as_tibble(t(tmp))
-  names(tmp) <- as.character(as.vector(tmp[1,]))
-  tmp <- tmp[-1,]
-  tmp$Minute <- as.numeric(row.names(tmp))
   
-  tmp <- tmp %>% retype()
-  tmp$Participant <- substr(f,6,7)
+  if(str_detect(f,'08')){
+    tmp$Order <- 'Canal - Concha'
+  }else{
+    tmp$Order <- 'Concha - Canal'
+  }
   if(make_table==1){
-    data2 <- tmp
+    data <- tmp
     make_table=0
   }else{
-    data2 <- rbind(data2,tmp)
+    data <- rbind(data,tmp)
   }
 }
+# make_table <- 1
+# for(f in file_names){
+#   tmp <- read_excel(str_c(data_dir,'/',f),sheet='Power Band Stats',n_max=9)
+#   tmp <- as_tibble(t(tmp))
+#   names(tmp) <- as.character(as.vector(tmp[1,]))
+#   tmp <- tmp[-1,]
+#   tmp$Minute <- as.numeric(row.names(tmp))
+#   
+#   tmp <- tmp %>% retype()
+#   tmp$Participant <- substr(f,6,7)
+#   if(str_detect(f,'08')){
+#     tmp$Order <- 'Canal - Concha'
+#   }else{
+#     tmp$Order <- 'Concha - Canal'
+#   }
+#   if(make_table==1){
+#     data2 <- tmp
+#     make_table=0
+#   }else{
+#     data2 <- rbind(data2,tmp)
+#   }
+# }
+# 
+# data <- merge(data,data2)
 
-data <- merge(data1,data2)
-
-data <- data[,c("Participant", "Minute","Mean Heart Rate", "Mean IBI",  
-                "SDNN", "RMSSD", "NN50", "pNN50", "HF/RSA Power", "HF/RSA Peak Power Frequency")]
+data <- data[,c("Participant", "Order","Minute","RSA","Mean IBI","SDNN","RMSSD")]
 data <- data[order(data$Minute),]
+
+# log transform specific variables
+data$SDNN <- log(data$SDNN)
+data$RMSSD <- log(data$RMSSD)
+
 
 # add in info on block types
 data$BlockType <- ''
 data$BlockType[data$Minute<6] <- 'Baseline'
-data$BlockType[data$Minute > 5 & data$Minute<11] <- 'Concha30Hz-1'
+data$BlockType[data$Minute > 5 & data$Minute<11] <- 'Stim-A1'
 data$BlockType[data$Minute > 10 & data$Minute<16] <- 'Washout1'
-data$BlockType[data$Minute > 15 & data$Minute<21] <- 'Concha30Hz-2'
+data$BlockType[data$Minute > 15 & data$Minute<21] <- 'Stim-A2'
 data$BlockType[data$Minute > 20 & data$Minute<26] <- 'Washout2'
-data$BlockType[data$Minute > 25 & data$Minute<31] <- 'Canal30Hz-1'
+data$BlockType[data$Minute > 25 & data$Minute<31] <- 'Stim-B1'
 data$BlockType[data$Minute > 30 & data$Minute<36] <- 'Washout3'
-data$BlockType[data$Minute > 35 & data$Minute<=41] <- 'Canal30Hz-2'
-data$BlockType <- factor(data$BlockType, levels=c('Baseline','Concha30Hz-1','Washout1','Concha30Hz-2',
-                                                  'Washout2','Canal30Hz-1','Washout3','Canal30Hz-2'))
+data$BlockType[data$Minute > 35 & data$Minute<=41] <- 'Stim-B2'
+data$BlockType <- factor(data$BlockType, levels=c('Baseline','Stim-A1','Washout1','Stim-A2',
+                                                  'Washout2','Stim-B1','Washout3','Stim-B2'))
 
 # melt data
-data <- melt(data,id=c('BlockType','Minute','Participant'))
+data <- melt(data.frame(data),id=c('BlockType','Minute','Participant','Order'))
 
-# normalize within participant and variable
-data <- data %>%
-  group_by(Participant,variable) %>%
-  mutate(value = scale(value))
+# center to baseline
+for(p in unique(data$Participant)){
+  for(v in unique(data$variable)){
+    base_mean = mean(data[data$Participant==p & data$variable==v & data$BlockType=='Baseline','value'])
+    base_std=1
+    #base_std = sd(data[data$Participant==p & data$variable==v & data$BlockType=='Baseline','value'])
+    data[data$Participant==p & data$variable==v,'value'] <- (data[data$Participant==p & data$variable==v,'value'] - base_mean)/base_std
+  }
+}
 
-data %>% ggplot(aes(x=BlockType,y=value,color=BlockType))+
-  geom_boxplot()+
-  #geom_point(aes(x=BlockType,y=value,color=Participant))+
-  #geom_hline(yintercept=0)+
-  facet_grid(variable~Participant,scales='free_y')+
-  theme_bw()+
-  theme(axis.text.x = element_text(angle = 90, vjust = -0.5, hjust=1))
-
-data %>% ggplot(aes(x=BlockType,y=value))+
-  geom_boxplot()+
-  #geom_point(aes(x=BlockType,y=value,color=Participant))+
-  #geom_hline(yintercept=0)+
-  facet_wrap('variable',scales='free_y')+
-  theme_bw()+
-  theme(axis.text.x = element_text(angle = 90, vjust = -0.5, hjust=1))
-
-data.summary <- data %>% group_by(Participant,BlockType,variable) %>% summarise(value=mean(value,na.rm=T))
-data.summary %>% ggplot(aes(x=BlockType,y=value,color=Participant,group=Participant))+
+# plot mean for each individual
+data.summary <- data %>% group_by(Participant,Order,BlockType,variable) %>% summarise(value=mean(value,na.rm=T))
+data.summary %>% ggplot(aes(x=BlockType,y=value,color=Order,group=Participant))+
   #geom_boxplot()+
   geom_point()+
   geom_line()+
   facet_wrap('variable',scales='free_y')+
   ggpubr::theme_pubclean()+
-  theme(axis.text.x = element_text(angle = 90, vjust = -0.5, hjust=1))
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
-data.summary <- data %>% group_by(BlockType,variable) %>% summarise(mean=mean(value,na.rm=T),std=sd(value,na.rm=T),n=n()) %>%
-  mutate(se=std/sqrt(n))
-data.summary %>% ggplot(aes(x=BlockType,y=mean,group=''))+
+# calculate mean and standard deviation at group level
+# data.summary <- data %>% group_by(BlockType,variable) %>% summarise(mean=mean(value,na.rm=T),std=sd(value,na.rm=T),n=n()) %>%
+#   mutate(se=std/sqrt(n))
+
+# calculate mean and 95% CI for each variable
+data.summary <- data %>% 
+  select(BlockType,variable,value) %>%
+  group_by(BlockType,variable) %>%
+  summarise(data = list(smean.cl.boot(cur_data(), conf.int = .95, B = 1000, na.rm = TRUE))) %>%
+  tidyr::unnest_wider(data)
+
+data.summary %>% ggplot(aes(x=BlockType,y=Mean,group=''))+
   geom_point()+
   geom_line()+
   geom_hline(yintercept=0)+
-  geom_errorbar(aes(ymin=mean-se,ymax=mean+se),width=0.1)+
+  geom_errorbar(aes(ymin=Lower,ymax=Upper),width=0.1)+
   facet_wrap('variable',scales='free_y')+
   ggpubr::theme_pubclean()+
-  theme(axis.text.x = element_text(angle = 90, vjust = -0.5, hjust=1))
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
-  
+# calculate mean and 95% CI for each group and variable
+data.summary <- data %>% 
+  select(Order,BlockType,variable,value) %>%
+  group_by(Order,BlockType,variable) %>%
+  summarise(data = list(smean.cl.boot(cur_data(), conf.int = .95, B = 1000, na.rm = TRUE))) %>%
+  tidyr::unnest_wider(data)
+
+data.summary %>% ggplot(aes(x=BlockType,y=Mean,group=Order,color=Order))+
+  geom_point()+
+  geom_line()+
+  geom_hline(yintercept=0)+
+  geom_errorbar(aes(ymin=Lower,ymax=Upper),width=0.1)+
+  facet_wrap('variable',scales='free_y')+
+  ggpubr::theme_pubclean()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
 
 
@@ -120,14 +149,14 @@ data.summary %>% ggplot(aes(x=BlockType,y=mean,group=''))+
 #   summarize(mean = mean(value),median=median(value))
 # 
 # # compute effect sizes
-# Concha30Hz1_mean <- data.summary$mean[data.summary$BlockType=='Concha30Hz-1'] - data.summary$mean[data.summary$BlockType=='Baseline']
-# Concha30Hz1_median <- data.summary$median[data.summary$BlockType=='Concha30Hz-1'] - data.summary$median[data.summary$BlockType=='Baseline']
-# Concha30Hz2_mean <- data.summary$mean[data.summary$BlockType=='Concha30Hz-2'] - data.summary$mean[data.summary$BlockType=='Washout1']
-# Concha30Hz2_median <- data.summary$median[data.summary$BlockType=='Concha30Hz-2'] - data.summary$median[data.summary$BlockType=='Washout1']
-# Canal30Hz1_mean <- data.summary$mean[data.summary$BlockType=='Canal30Hz-1'] - data.summary$mean[data.summary$BlockType=='Washout2']
-# Canal30Hz1_median <- data.summary$median[data.summary$BlockType=='Canal30Hz-1'] - data.summary$median[data.summary$BlockType=='Washout2']
-# Canal30Hz2_mean <- data.summary$mean[data.summary$BlockType=='Canal30Hz-2'] - data.summary$mean[data.summary$BlockType=='Washout3']
-# Canal30Hz2_median <- data.summary$median[data.summary$BlockType=='Canal30Hz-2'] - data.summary$median[data.summary$BlockType=='Washout3']
+# Concha30Hz1_mean <- data.summary$mean[data.summary$BlockType=='Stim-A1'] - data.summary$mean[data.summary$BlockType=='Baseline']
+# Concha30Hz1_median <- data.summary$median[data.summary$BlockType=='Stim-A1'] - data.summary$median[data.summary$BlockType=='Baseline']
+# Concha30Hz2_mean <- data.summary$mean[data.summary$BlockType=='Stim-A2'] - data.summary$mean[data.summary$BlockType=='Washout1']
+# Concha30Hz2_median <- data.summary$median[data.summary$BlockType=='Stim-A2'] - data.summary$median[data.summary$BlockType=='Washout1']
+# Canal30Hz1_mean <- data.summary$mean[data.summary$BlockType=='Stim-B1'] - data.summary$mean[data.summary$BlockType=='Washout2']
+# Canal30Hz1_median <- data.summary$median[data.summary$BlockType=='Stim-B1'] - data.summary$median[data.summary$BlockType=='Washout2']
+# Canal30Hz2_mean <- data.summary$mean[data.summary$BlockType=='Stim-B2'] - data.summary$mean[data.summary$BlockType=='Washout3']
+# Canal30Hz2_median <- data.summary$median[data.summary$BlockType=='Stim-B2'] - data.summary$median[data.summary$BlockType=='Washout3']
 # 
 # # calculate difference of means and medians 
 # data.summary <- data %>% group_by(Participant,variable) %>% summarise()
@@ -157,7 +186,7 @@ data.summary %>% ggplot(aes(x=BlockType,y=mean,group=''))+
 #   geom_hline(yintercept=0)+
 #   facet_wrap('Variable',scales='free_y')+
 #   theme_bw()+
-#   theme(axis.text.x = element_text(angle = 90, vjust = -0.5, hjust=1))
+#   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 # 
 # # 
 # ####
@@ -167,14 +196,14 @@ data.summary %>% ggplot(aes(x=BlockType,y=mean,group=''))+
 #   summarize(mean = mean(value,na.rm=T),median=median(value,na.rm=T))
 # 
 # # compute effect sizes
-# Concha30Hz1_mean <- data.summary$mean[data.summary$BlockType=='Concha30Hz-1'] - data.summary$mean[data.summary$BlockType=='Baseline']
-# Concha30Hz1_median <- data.summary$median[data.summary$BlockType=='Concha30Hz-1'] - data.summary$median[data.summary$BlockType=='Baseline']
-# Concha30Hz2_mean <- data.summary$mean[data.summary$BlockType=='Concha30Hz-2'] - data.summary$mean[data.summary$BlockType=='Washout1']
-# Concha30Hz2_median <- data.summary$median[data.summary$BlockType=='Concha30Hz-2'] - data.summary$median[data.summary$BlockType=='Washout1']
-# Canal30Hz1_mean <- data.summary$mean[data.summary$BlockType=='Canal30Hz-1'] - data.summary$mean[data.summary$BlockType=='Washout2']
-# Canal30Hz1_median <- data.summary$median[data.summary$BlockType=='Canal30Hz-1'] - data.summary$median[data.summary$BlockType=='Washout2']
-# Canal30Hz2_mean <- data.summary$mean[data.summary$BlockType=='Canal30Hz-2'] - data.summary$mean[data.summary$BlockType=='Washout3']
-# Canal30Hz2_median <- data.summary$median[data.summary$BlockType=='Canal30Hz-2'] - data.summary$median[data.summary$BlockType=='Washout3']
+# Concha30Hz1_mean <- data.summary$mean[data.summary$BlockType=='Stim-A1'] - data.summary$mean[data.summary$BlockType=='Baseline']
+# Concha30Hz1_median <- data.summary$median[data.summary$BlockType=='Stim-A1'] - data.summary$median[data.summary$BlockType=='Baseline']
+# Concha30Hz2_mean <- data.summary$mean[data.summary$BlockType=='Stim-A2'] - data.summary$mean[data.summary$BlockType=='Washout1']
+# Concha30Hz2_median <- data.summary$median[data.summary$BlockType=='Stim-A2'] - data.summary$median[data.summary$BlockType=='Washout1']
+# Canal30Hz1_mean <- data.summary$mean[data.summary$BlockType=='Stim-B1'] - data.summary$mean[data.summary$BlockType=='Washout2']
+# Canal30Hz1_median <- data.summary$median[data.summary$BlockType=='Stim-B1'] - data.summary$median[data.summary$BlockType=='Washout2']
+# Canal30Hz2_mean <- data.summary$mean[data.summary$BlockType=='Stim-B2'] - data.summary$mean[data.summary$BlockType=='Washout3']
+# Canal30Hz2_median <- data.summary$median[data.summary$BlockType=='Stim-B2'] - data.summary$median[data.summary$BlockType=='Washout3']
 # 
 # # calculate difference of means and medians 
 # data.summary <- data %>% group_by(Participant,variable) %>% summarise()
@@ -200,7 +229,7 @@ data.summary %>% ggplot(aes(x=BlockType,y=mean,group=''))+
 #   geom_point()+
 #   geom_hline(yintercept=0)+
 #   theme_bw()+
-#   theme(axis.text.x = element_text(angle = 90, vjust = -0.5, hjust=1))
+#   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 # 
 # 
 # data.summary %>% ggplot(aes(x=Effect,y=Value))+
@@ -208,5 +237,5 @@ data.summary %>% ggplot(aes(x=BlockType,y=mean,group=''))+
 #   geom_point(aes(x=Effect,y=Value,color=Participant))+
 #   geom_hline(yintercept=0)+
 #   theme_bw()+
-#   theme(axis.text.x = element_text(angle = 90, vjust = -0.5, hjust=1))
+#   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 # 

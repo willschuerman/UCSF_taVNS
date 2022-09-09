@@ -18,15 +18,17 @@ cd('Data')
 
 %% Load data
 
-data = load(['Biopac_Tests' filesep 'tVNS testing 100k sampling rate.mat']);
+%data = load(['Biopac_Tests' filesep 'tVNS testing 100k sampling rate.mat']);
+data = load(['Biopac_Tests' filesep 'tVNS_testing_100k_09082022.mat']);
 Fs = 100000;
 %% get rid of bad data at end of experiment (for tVNS Danielle.mat)
 %data.data = data.data(1:40210900,:);
 %% plot raw data
 t = (1:length(data.data))/Fs;
-d = data.data*10;
-d = d - mean(d);
-plot(t(t<60),d(t<60,1))
+d = data.data;
+%d = data.data*10;
+%d = d - mean(d);
+plot(t,d)
 title('Stimulator Output')
 
 
