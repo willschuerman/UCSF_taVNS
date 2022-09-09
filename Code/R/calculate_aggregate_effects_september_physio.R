@@ -65,7 +65,6 @@ data <- data[order(data$Minute),]
 data$SDNN <- log(data$SDNN)
 data$RMSSD <- log(data$RMSSD)
 
-
 # add in info on block types
 data$BlockType <- ''
 data$BlockType[data$Minute<6] <- 'Baseline'
@@ -86,21 +85,28 @@ data <- melt(data.frame(data),id=c('BlockType','Minute','Participant','Order'))
 for(p in unique(data$Participant)){
   for(v in unique(data$variable)){
     base_mean = mean(data[data$Participant==p & data$variable==v & data$BlockType=='Baseline','value'])
-    base_std=1
-    #base_std = sd(data[data$Participant==p & data$variable==v & data$BlockType=='Baseline','value'])
-    data[data$Participant==p & data$variable==v,'value'] <- (data[data$Participant==p & data$variable==v,'value'] - base_mean)/base_std
-  }
+    base_std = sd(data[data$Participant==p & data$variable==v & data$BlockType=='Baseline','value'])
+    data[data$Participant==p & data$variable==v,'cValue'] <- (data[data$Participant==p & data$variable==v,'value'] - base_mean)
+    data[data$Participant==p & data$variable==v,'zValue'] <- (data[data$Participant==p & data$variable==v,'value'] - base_mean)/base_std
+    }
 }
 
+data %>% ggplot(aes(x=zValue))+
+  geom_histogram()+
+  facet_grid(Participant~variable,scales='free')+
+  theme_bw()
+
 # plot mean for each individual
-data.summary <- data %>% group_by(Participant,Order,BlockType,variable) %>% summarise(value=mean(value,na.rm=T))
-data.summary %>% ggplot(aes(x=BlockType,y=value,color=Order,group=Participant))+
+data.summary <- data %>% group_by(Participant,Order,BlockType,variable) %>% summarise(value=mean(zValue,na.rm=T))
+data.summary %>% 
+  ggplot(aes(x=BlockType,y=value,color=Order,group=Participant))+
   #geom_boxplot()+
   geom_point()+
   geom_line()+
   facet_wrap('variable',scales='free_y')+
   ggpubr::theme_pubclean()+
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  ylab('Mean (z)')
 
 # calculate mean and standard deviation at group level
 # data.summary <- data %>% group_by(BlockType,variable) %>% summarise(mean=mean(value,na.rm=T),std=sd(value,na.rm=T),n=n()) %>%
