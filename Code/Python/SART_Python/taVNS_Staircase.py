@@ -430,7 +430,7 @@ def expr(expInfo):
             trial_data = [build, computer, current_date, current_time, subject, group,trialn, params['amp'],params['pw'],response,runningmean]
             record_data(raw_data_writer,trial_data)
             #print(trial_data)
-            print(ampvec)
+            #print(ampvec)
 
             # update buf
             if params['amp']>3:
@@ -486,7 +486,7 @@ def expr(expInfo):
                 trial_data = [build, computer, current_date, current_time, subject, group,trialn, params['amp'],params['pw'],response,runningmean]
                 record_data(raw_data_writer,trial_data)
                 #print(trial_data)
-                print(ampvec)
+                #print(ampvec)
 
                 # update buf
                 if params['amp']>3:
@@ -498,7 +498,7 @@ def expr(expInfo):
             task.close()
             
     raw_data_log.close()                    
-    print('Threshold = {}, stim level = {}'.format(np.round(runningmean,2),np.round(runningmean-0.2,2)))
+    print('Threshold = {}, stim level = {}'.format(np.round(runningmean,2),np.round(runningmean,2)-0.2))
 
     mywin.close()
     

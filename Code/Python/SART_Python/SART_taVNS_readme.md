@@ -8,13 +8,13 @@ Within this folder, there is a file called taVNS_plus_SART_expr.psyrun. Double c
 ![alt text](psychopy_gui.png "Psychopy GUI")
 
 - Click on File --> Open list
-- Select taVNS_pluse_SART_expr.psyrun (the same file you originally clicked on)
+- Select taVNS_plus_SART_expr.psyrun (the same file you originally clicked on)
 
 This will load two lines to the Psychopy Runner interface:
 1. taVNS_Staircase.py
 2. SART_taVNS.py
 
-Click on the `taVNS_Staircase.py` line, and on the right the white arrow within the green circle will become selectable. Clicking on this button with run the selected script. 
+Click on the `taVNS_Staircase.py` line, and on the right panel the white arrow within the green circle will become selectable. Clicking on this button with run the selected script. When the script runs, you should see the following input screen. 
 
 ![alt text](Staircase_intro_gui.png "Staircase GUI")
 
