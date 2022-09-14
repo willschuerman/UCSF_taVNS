@@ -60,10 +60,11 @@ instruct = {
 #/fontstyle = ("Arial", 4.00%, false, false, false, false, 5, 1) not sure what the other flags are
 
 #note: These instructions are not original. Please customize.
-page = {'intro': '''You will receive brief bursts of tVNS. \n 
+page = {'intro': '''(To be read aloud to the participant)\n
+    "You will receive short bursts of stimulation. \n 
     This can feel like a sudden warming, tingling, or tapping sensation. \n
-    When prompted, press 2 if you felt the tVNS, and 1 if you did not. \n
-    Only press 2 if you are certain that you felt something. If unsure, press 1.\n\n
+    Whenever you are certain that you felt the stimulation, please say so out loud. \n
+    If you are unsure, remain silent. Only respond if you are certain that you felt the stimulation." \n\n
     Press space to begin.'''}
 
 ##############################################################################################################
@@ -205,7 +206,7 @@ fixation = visual.TextStim(mywin, text='+',
 fixation.autoDraw = False  # Automatically draw every frame
 
 # initialize text digit <- updated on every trial
-responsePrompt = visual.TextStim(mywin, text="1 = I didn't feel it.\t 2 = I felt it.",
+responsePrompt = visual.TextStim(mywin, text="1 = Didn't feel it.\t 2 = Felt it.",
     font=defaults['fontstyle'], # To do: not sure we have the 'Symbol' font, may need to add
     units='height',
     height=defaults['fontsize'], 
@@ -498,7 +499,7 @@ def expr(expInfo):
             task.close()
             
     raw_data_log.close()                    
-    print('Threshold = {}, stim level = {}'.format(np.round(runningmean,2),np.round(runningmean,2)-0.2))
+    print('----\nThreshold = {}, stim level = {}\n----'.format(np.round(runningmean,2),np.round(runningmean,2)-0.2))
 
     mywin.close()
     
