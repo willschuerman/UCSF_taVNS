@@ -23,6 +23,8 @@ for(f in file_names){
   
   if(str_detect(f,'08')){
     tmp$Order <- 'Canal - Concha'
+  }else if(str_detect(f,'sham')){
+    tmp$Order <- 'Sham - Sham'
   }else{
     tmp$Order <- 'Concha - Canal'
   }
@@ -114,7 +116,7 @@ data.summary %>%
 
 # calculate mean and 95% CI for each variable
 data.summary <- data %>% 
-  select(BlockType,variable,value) %>%
+  select(BlockType,variable,zValue) %>%
   group_by(BlockType,variable) %>%
   summarise(data = list(smean.cl.boot(cur_data(), conf.int = .95, B = 1000, na.rm = TRUE))) %>%
   tidyr::unnest_wider(data)
@@ -130,7 +132,7 @@ data.summary %>% ggplot(aes(x=BlockType,y=Mean,group=''))+
 
 # calculate mean and 95% CI for each group and variable
 data.summary <- data %>% 
-  select(Order,BlockType,variable,value) %>%
+  select(Order,BlockType,variable,zValue) %>% # here, change to value/cValue/zValue
   group_by(Order,BlockType,variable) %>%
   summarise(data = list(smean.cl.boot(cur_data(), conf.int = .95, B = 1000, na.rm = TRUE))) %>%
   tidyr::unnest_wider(data)
@@ -143,8 +145,6 @@ data.summary %>% ggplot(aes(x=BlockType,y=Mean,group=Order,color=Order))+
   facet_wrap('variable',scales='free_y')+
   ggpubr::theme_pubclean()+
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
-
-
 
 
 #### Plot difference from previous block #####
