@@ -413,6 +413,8 @@ def expr(expInfo):
 
         while (nreversals < 8) and (params['amp'] > 0) and (params['amp']<3):
             trialn+=1
+            plotvec.append(params['amp'])
+
             #buf = MakeStimBuffer(params)
             params, nreversals, response = debug_trial(params, nreversals,buf)
             print(params['amp'])
@@ -425,8 +427,6 @@ def expr(expInfo):
             else:
                 runningmean = 0
             
-            plotvec.append(params['amp'])
-
             trial_data = [build, computer, current_date, current_time, subject, group,trialn, params['amp'],params['pw'],response,runningmean]
             record_data(raw_data_writer,trial_data)
             #print(trial_data)
@@ -469,6 +469,8 @@ def expr(expInfo):
 
             while (nreversals < 8) and (params['amp'] > 0) and (params['amp']<3):
                 trialn+=1
+                plotvec.append(params['amp'])
+
                 buf = MakeStimBuffer(params)
                 params, nreversals, response = trial(params, nreversals,buf)
                 print(params['amp'])
@@ -480,8 +482,6 @@ def expr(expInfo):
                     runningmean = np.mean(ampvec)
                 else:
                     runningmean = 0
-
-                plotvec.append(params['amp'])
 
                 trial_data = [build, computer, current_date, current_time, subject, group,trialn, params['amp'],params['pw'],response,runningmean]
                 record_data(raw_data_writer,trial_data)
