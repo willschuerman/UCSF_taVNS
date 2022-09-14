@@ -409,6 +409,7 @@ def expr(expInfo):
 
         trialn = 0
         ampvec = []
+        plotvec = []
 
         while (nreversals < 8) and (params['amp'] > 0) and (params['amp']<3):
             trialn+=1
@@ -423,10 +424,12 @@ def expr(expInfo):
                 runningmean = np.mean(ampvec)
             else:
                 runningmean = 0
+            
+            plotvec.append(params['amp'])
 
             trial_data = [build, computer, current_date, current_time, subject, group,trialn, params['amp'],params['pw'],response,runningmean]
             record_data(raw_data_writer,trial_data)
-            print(trial_data)
+            #print(trial_data)
             print(ampvec)
 
             # update buf
@@ -462,6 +465,7 @@ def expr(expInfo):
 
             trialn = 0
             ampvec = []
+            plotvec = []
 
             while (nreversals < 8) and (params['amp'] > 0) and (params['amp']<3):
                 trialn+=1
@@ -477,9 +481,11 @@ def expr(expInfo):
                 else:
                     runningmean = 0
 
+                plotvec.append(params['amp'])
+
                 trial_data = [build, computer, current_date, current_time, subject, group,trialn, params['amp'],params['pw'],response,runningmean]
                 record_data(raw_data_writer,trial_data)
-                print(trial_data)
+                #print(trial_data)
                 print(ampvec)
 
                 # update buf
@@ -492,13 +498,13 @@ def expr(expInfo):
             task.close()
             
     raw_data_log.close()                    
-    print('Threshold = {}, stim level = {}'.format(np.round(runningmean,2),np.round(runningmean,2)-0.2))
+    print('Threshold = {}, stim level = {}'.format(np.round(runningmean,2),np.round(runningmean-0.2,2)))
 
     mywin.close()
     
     # plot staircase (this doesn't seem to work, psychopy problem)
-    plt.plot(ampvec)
-    plt.hlines(y=runningmean,xmin=1,xmax=len(ampvec))
+    plt.plot(np.arange(1,len(plotvec)+1),plotvec)
+    plt.hlines(y=runningmean,xmin=1,xmax=len(plotvec)+1)
     plt.show()
 
     # on staircase end
