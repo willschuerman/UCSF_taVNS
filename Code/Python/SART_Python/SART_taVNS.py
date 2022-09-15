@@ -844,7 +844,7 @@ def expt():
         # run experiment blocks
         raw_data_writer,raw_data_log = createdata('_tvns_expr')
         trialcount = 1
-        for b in range(4):
+        for b in range(int(float(expInfo['nblocks']))):
             trialcount = block_SART(trialcount,b)
 
         raw_data_log.close()        
@@ -874,7 +874,7 @@ def expt():
             # run experiment blocks
             raw_data_writer,raw_data_log = createdata('_tvns_expr')
             trialcount = 1
-            for b in range(4):
+            for b in range(int(float(expInfo['nblocks']))):
                 trialcount = block_SART(trialcount,b)
 
             raw_data_log.close()
