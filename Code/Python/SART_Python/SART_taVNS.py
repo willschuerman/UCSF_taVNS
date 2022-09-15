@@ -131,7 +131,8 @@ expInfo = {
     'subject':'test',
     'amplitude':0.1,
     'pulse width':200,
-    'debug': 0
+    'debug': 0,
+    'nblocks': 4
 }
 dlg = gui.DlgFromDict(expInfo, title='SART Task', fixed=['dateStr'])
 if dlg.OK:
