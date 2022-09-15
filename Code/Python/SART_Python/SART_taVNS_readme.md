@@ -87,8 +87,15 @@ The primary fields that need to be changed are `amplitude` and `subject`.
 1. For `subject`, enter the same unique identifier used during the Threshold staircase.
 2. For `amplitude`, enter the `stim level` value that was produced by the staircase procedure. 
 
-Press "OK" and the script will run. When the instruction screen appears, place the computer in front of the participant where they can respond easily. Have them read the instructions, and then run the task. 
+Press "OK" and the script will run. When the instruction screen appears, place the computer in front of the participant where they can respond easily. Have them read the instructions, and then run the task (the only key they need to press is the space bar). If you press `Q` or `ESCAPE` while the program is running, this will quit the entire program (so be careful). 
 
 ## 4. Cleanup
 
 ### -------- FIRST, CHANGE THE SWITCH ON THE FRONT OF THE STIMULATOR FROM `"I"` to `"V"` --------
+
+Once the switch is on `"V"`, remove the taVNS electrodes from the participant. The putty should be thrown away, and the electrodes gently washed with lukewarm water and a toothbrush, then either hung to dry or dried off with a paper towel. 
+
+The files from the staircase and SART task for this participant are saved in the `/logs/` directory in this folder. These are named using the unique identifier. For example, if `Group` was "0" and `subject` was "test", running the staircase and the SART task will generate three `.csv` files: 
+1. G0Stest_staircaseTVNS.csv
+2. G0Stest_sart_log_tvns_practice.csv
+3. G0Stest_sart_log_tvns_expr.csv
