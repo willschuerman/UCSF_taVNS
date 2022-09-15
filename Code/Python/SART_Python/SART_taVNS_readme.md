@@ -44,10 +44,14 @@ After entering the unique participant identifier in the subject field, click \*O
 
 The screen will turn black, after which the following instructions will appear (that you should read out loud to the participant):
 ```
-"You will receive brief bursts of tVNS. This can feel like a sudden warming, tingling, or tapping sensation. When prompted, press 2 if you felt the tVNS, and 1 if you did not. Only press 2 if you are certain that you felt something. If unsure, press 1. Press space to begin."
+"You will receive short bursts of stimulation.
+This can feel like a sudden warming, tingling, or tapping sensation.
+Whenever you are certain that you felt the stimulation, please say so out loud.
+If you are unsure, remain silent. Only respond if you are certain that you felt the stimulation"
 ```
 
--------- AT THIS POINT, CHANGE THE SWITCH ON THE FRONT OF THE STIMULATOR FROM "V" to "I" --------
+### -------- AT THIS POINT, CHANGE THE SWITCH ON THE FRONT OF THE STIMULATOR FROM `"V"` to `"I"` --------
+
 
 After pressing space, the screen with show a fixation cross ('+'). This indicates that stimulation is occurring. After each trial, the following two choices will show up on the screen: 
 ```
@@ -71,6 +75,20 @@ For the threshold to be accurate, the responses from the participant need to be 
 
 In this example directly above, the point at which the participant reported stimulation varies greatly. This can occur if the electrodes move around due to the putty being unstable, or if the participant is reporting stimulation when actually they can't feel it, or some other reason. Again, if the threshold does not appear relatively stable, re-run the script (and repeat to the participant that they should only respond when they are certain that they have felt stimulation). If the threshold is still very unstable, consider reapplying the electrodes. 
 
+If everything looks okay, record the stim level, then close the figure by pressing the "X" at the top right of the window.
+
 ## 3. Running the SART task
 
+Click on the `SART_taVNS.py` line in the PsychoPy Runner window, and on the right panel the white arrow within the green circle will become selectable. Clicking on this button with run the selected script. When the script runs, you should see the following input screen. 
+
+![alt text](SART_intro_gui.png "SART GUI")
+
+The primary fields that need to be changed are `amplitude` and `subject`. 
+1. For `subject`, enter the same unique identifier used during the Threshold staircase.
+2. For `amplitude`, enter the `stim level` value that was produced by the staircase procedure. 
+
+Press "OK" and the script will run. When the instruction screen appears, place the computer in front of the participant where they can respond easily. Have them read the instructions, and then run the task. 
+
 ## 4. Cleanup
+
+### -------- FIRST, CHANGE THE SWITCH ON THE FRONT OF THE STIMULATOR FROM `"I"` to `"V"` --------
