@@ -850,6 +850,7 @@ def expt():
     computer = platform.system()
 
     # determine whether order of stimulation for this participant is AABB or BBAA
+    # could also have a pre-randomized list of orders, and just select the one based on the subject number. 
     subject_number = int(''.join(filter(str.isdigit, expInfo['subject'])))
     global subject_order
     if subject_number % 2 == 0:
