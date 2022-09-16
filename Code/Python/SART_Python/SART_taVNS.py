@@ -197,12 +197,13 @@ def MakeStimBuffer(params):
 
     return yTest
 
-
+# Create fake buffer
 params = {}
-params.update({"sr":24000.00, "amp":1, "freq":25, "pw":200, 'npulse':15})
+params.update({"sr":24000.00, "freq":25, "pw":200, 'npulse':15})
 params.update({"duration_test":params['npulse']/params["freq"]}) # 15 = npulses, "pw": 15/(params["freq"]*100) <- why?
-buf = MakeStimBuffer(params)
-fake_buf = np.zeros(len(buf))
+params.update({"amp":0}) # if sham block, set stimulation amplitude to 0. 
+
+fake_buf = MakeStimBuffer(params)
 ##############################################################################################################
 ##############################################################################################################
 #	DEFAULTS
@@ -232,7 +233,7 @@ data = {'columns':('build','computer.platform','date','time','subject','group','
 'parameters.maskpresentationtime','values.trialtype','values.digit','values.fontsize','response','correct',
 'values.RT','latency','values.latencytype','values.responsetype','values.count_anticipatory',
 'values.correctsuppressions','values.count_NoGo','values.incorrectsuppressions','values.count_Go',
-'values.count_validGo','values.dostim','radiobuttons.difficulty.response','radiobuttons.interest.response')
+'values.count_validGo','values.dostim','values.amp','values.order')
 }
 
 
@@ -627,7 +628,7 @@ def trial(digitvalue,fontsize,dostim):
             responsetype = "Go Anticipatory"
             count_anticipatory += 1
         elif RT >= parameters['anticipatoryresponsetime'] and RT < parameters['validresponsetime']:
-            responsetype = "Go Ambiguous";
+            responsetype = "Go Ambiguous"
         elif RT >= parameters['validresponsetime']:
             responsetype = "Go Success"
             count_validGo += 1
@@ -750,9 +751,21 @@ def block_practice():
     waitForButtonPress()
 
 
-def block_SART(trialcount,b):
+def block_SART(trialcount,b,stim_block):
     blockcode = 'SART'
     blocknum = b+1
+
+    # Create buffer
+    params = {}
+    params.update({"sr":24000.00, "freq":25, "pw":200, 'npulse':15})
+    params.update({"duration_test":params['npulse']/params["freq"]}) # 15 = npulses, "pw": 15/(params["freq"]*100) <- why?
+    if stim_block:
+        params.update({"amp":expInfo['amplitude']})  
+    else:
+        params.update({"amp":0}) # if sham block, set stimulation amplitude to 0. 
+
+    buf = MakeStimBuffer(params)
+    fake_buf = np.zeros(len(buf))
 
     getReady()
 
@@ -804,7 +817,7 @@ def block_SART(trialcount,b):
             int(parameters['digitpresentationtime']*100), int(parameters['maskpresentationtime']*100), trialtype, digitvalue, fontsize,
             response, correct, RT, latency, latencytype, responsetype, count_anticipatory,correctsuppressions, count_NoGo, 
             incorrectsuppressions, count_Go, count_validGo, 
-            dostim,0,0] #
+            dostim,parameters['amp'],subject_order] #
         record_data(raw_data_writer,trial_data)
 
         # update trial values
@@ -836,6 +849,15 @@ def expt():
     # get computer info
     computer = platform.system()
 
+    # determine whether order of stimulation for this participant is AABB or BBAA
+    subject_number = int(''.join(filter(str.isdigit, expInfo['subject'])))
+    global subject_order
+    if subject_number % 2 == 0:
+        stim_order = ['A','A','B','B']
+        subject_order = 'AABB'
+    else:
+        stim_order = ['B','B','A','A']
+        subject_order = 'BBAA'
 
     if debug:
         # run practice block
@@ -875,7 +897,11 @@ def expt():
             raw_data_writer,raw_data_log = createdata('_tvns_expr')
             trialcount = 1
             for b in range(int(float(expInfo['nblocks']))):
-                trialcount = block_SART(trialcount,b)
+                if stim_order[b] == 'A':
+                    trialcount = block_SART(trialcount,b,True)
+                else:
+                    trialcount = block_SART(trialcount,b,False)
+
 
             raw_data_log.close()
 
