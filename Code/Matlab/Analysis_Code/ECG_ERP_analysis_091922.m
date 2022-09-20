@@ -20,22 +20,21 @@ cd(['..' filesep '..' filesep '..'])
 cd('Data')
 
 %% Load data
-initials = 'CR';
+initials = 'AP';
 data = load(['Physiology_tests' filesep  'September_Physio_Tests' filesep 'tVNS testing ' initials '.mat']);
 Fs = 20000;
 %% get rid of bad data at end of experiment (for tVNS Danielle.mat)
 %data.data = data.data(1:40210900,:);
 %% plot raw data
-% subplot(3,1,1)
-% plot(data.data(:,1))
-% title('Stimulator Output')
-% subplot(3,1,2)
-% plot(data.data(:,2))
-% title('Electrocardiogram')
-% subplot(3,1,3)
-% plot(data.data(:,3))
-% title('PPG')
-
+subplot(3,1,1)
+plot(data.data(:,1))
+title('Stimulator Output')
+subplot(3,1,2)
+plot(data.data(:,2))
+title('Electrocardiogram')
+subplot(3,1,3)
+plot(data.data(:,3))
+title('PPG')
 
 %% close windows
 clf
@@ -166,7 +165,10 @@ for Ri = 2:length(peakloc)-1 % We skip the first and last peak
     
         nsamples = length(peak_data);
         samps = 1:length(peak_data);
-    
+        
+        % Find R in window
+        [R,TR] = max(peak_data_rotated);
+            
         % Get Q and S position
         [Q,QR] = min(peak_data_rotated(TR-winsize:TR));
         QR = QR + TR-winsize;
