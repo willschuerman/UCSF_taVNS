@@ -144,7 +144,8 @@ data.summary %>% ggplot(aes(x=BlockType,y=Mean,group=Order,color=Order))+
   geom_errorbar(aes(ymin=Lower,ymax=Upper),width=0.1)+
   facet_wrap('variable',scales='free_y')+
   ggpubr::theme_pubclean()+
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  ylab('Mean (z) ±95% CI')
 
 
 #### Plot difference from previous block #####

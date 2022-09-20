@@ -20,8 +20,8 @@ cd(['..' filesep '..' filesep '..'])
 cd('Data')
 
 %% Load data
-
-data = load(['Physiology_tests' filesep 'tVNS_CR_30Hz_1ma_9.1.22.mat']);
+initials = 'PH';
+data = load(['Physiology_tests' filesep  'September_Physio_Tests' filesep 'tVNS testing ' initials '.mat']);
 Fs = 20000;
 %% get rid of bad data at end of experiment (for tVNS Danielle.mat)
 %data.data = data.data(1:40210900,:);
@@ -260,7 +260,7 @@ for tr = 1:length(onsets)-1
 
 end
 %% Plot event related data
-target_metric = mean_QRS; % mean_RRintervals, mean_QRS, mean_Ramp, mean_Rwavepeaktime
+target_metric = mean_Rwavepeaktime; % mean_RRintervals, mean_QRS, mean_Ramp, mean_Rwavepeaktime
 
 subplot(1,4,1)
 tmp = squeeze(target_metric(:,:,1));
@@ -420,7 +420,7 @@ tmp = tmp(~all(tmp==0,2),:);
 boxplot(tmp,notch=1)
 hold on
 hline(nanmedian(tmp(:)),'k-')
-title('Concha Stim 1')
+title('Concha 1')
 set(gca,'XTickLabel',{'Stim','NoStim'})
 set(gca,'FontName','Arial','FontSize',14)
 
@@ -430,7 +430,7 @@ tmp = tmp(~all(tmp==0,2),:);
 boxplot(tmp,notch=1)
 hold on
 hline(nanmedian(tmp(:)),'k-')
-title('Concha Stim 2')
+title('Concha 2')
 set(gca,'XTickLabel',{'Stim','NoStim'})
 set(gca,'FontName','Arial','FontSize',14)
 
@@ -440,7 +440,7 @@ tmp = tmp(~all(tmp==0,2),:);
 boxplot(tmp,notch=1)
 hold on
 hline(nanmedian(tmp(:)),'k-')
-title('Canal Stim 1')
+title('Canal 1')
 set(gca,'XTickLabel',{'Stim','NoStim'})
 set(gca,'FontName','Arial','FontSize',14)
 
@@ -450,7 +450,7 @@ tmp = tmp(~all(tmp==0,2),:);
 boxplot(tmp,notch=1)
 hold on
 hline(nanmedian(tmp(:)),'k-')
-title('Canal Stim 2')
+title('Canal 2')
 set(gca,'XTickLabel',{'Stim','NoStim'})
 set(gca,'FontName','Arial','FontSize',14)
   
@@ -462,7 +462,7 @@ plot(tmp,'o')
 hold on
 hline(nanmedian(tmp(:)),'k-')
 refline
-title('Concha Stim 1')
+title('Concha 1')
 legend('stim','nostim')
 set(gca,'FontName','Arial','FontSize',14)
 
@@ -473,7 +473,7 @@ plot(tmp,'o')
 refline
 hold on
 hline(nanmedian(tmp(:)),'k-')
-title('Concha Stim 2')
+title('Concha 2')
 set(gca,'FontName','Arial','FontSize',14)
 
 subplot(2,4,7)
@@ -483,7 +483,7 @@ plot(tmp,'o')
 hold on
 hline(nanmedian(tmp(:)),'k-')
 refline
-title('Canal Stim 1')
+title('Canal 1')
 set(gca,'FontName','Arial','FontSize',14)
 
 subplot(2,4,8)
@@ -493,7 +493,7 @@ plot(tmp,'o')
 hold on
 hline(nanmedian(tmp(:)),'k-')
 refline
-title('Canal Stim 2')
+title('Canal 2')
 set(gca,'FontName','Arial','FontSize',14)
 
 
@@ -536,6 +536,6 @@ title('Mean R-R Interval')
 set(gca,'XTickLabel',{'Baseline','Concha1','Rest','Concha2','Rest','Canal1','Rest','Canal2'})
 subplot(2,1,2)
 plot(sdRR,'o-')
-vline([5 10 15 20 25 30 35 40])
+vline((5.5:5:40))
 xlabel('Time (minutes)')
 
