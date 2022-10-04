@@ -5,6 +5,9 @@ library(reshape)
 library(Hmisc)
 library(tidyverse)
 
+# define custom color palette
+myPalette <- c("#8961b3","#b55960","#999c47")
+
 data_dir <- getwd()
 data_dir <- sub('/Code/R','/Data/Physiology_Tests',data_dir)
 
@@ -60,7 +63,7 @@ for(f in file_names){
 # 
 # data <- merge(data,data2)
 
-data <- data[,c("Participant", "Order","Minute","RSA","Mean IBI","SDNN","RMSSD")]
+data <- data[,c("Participant", "Order","Minute","RSA","Mean IBI","SDNN","RMSSD",'AVNN')]
 data <- data[order(data$Minute),]
 
 # log transform specific variables
@@ -145,8 +148,22 @@ data.summary %>% ggplot(aes(x=BlockType,y=Mean,group=Order,color=Order))+
   facet_wrap('variable',scales='free_y')+
   ggpubr::theme_pubclean()+
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
-  ylab('Mean (z) ±95% CI')
+  ylab('Mean (z) ±95% CI')+
+  scale_color_manual(values=myPalette)
 
+
+
+data.summary %>% filter(variable %in% c('RSA','RMSSD'))%>%
+  ggplot(aes(x=BlockType,y=Mean,group=Order,color=Order))+
+  geom_point()+
+  geom_line()+
+  geom_hline(yintercept=0)+
+  geom_errorbar(aes(ymin=Lower,ymax=Upper),width=0.1)+
+  facet_wrap('variable',scales='free_y')+
+  ggpubr::theme_pubclean()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  ylab('Mean (z) ±95% CI')+
+  scale_color_manual(values=myPalette)
 
 #### Plot difference from previous block #####
 # 

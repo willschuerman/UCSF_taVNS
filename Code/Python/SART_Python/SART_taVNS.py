@@ -765,7 +765,9 @@ def block_SART(trialcount,b,stim_block):
         params.update({"amp":0}) # if sham block, set stimulation amplitude to 0. 
 
     buf = MakeStimBuffer(params)
-    fake_buf = np.zeros(len(buf))
+
+    # write the actual waveform to the buffer
+    writer.write_many_sample(buf)
 
     getReady()
 
@@ -878,7 +880,7 @@ def expt():
             task.ao_channels.add_ao_voltage_chan("Dev1/ao1") # check output channel on DAQ
             task.timing.cfg_samp_clk_timing(rate=params["sr"],
                                     sample_mode=constants.AcquisitionType.FINITE,  # FINITE or CONTINUOUS
-                                    samps_per_chan=len(buf))
+                                    samps_per_chan=len(fake_buf))
             writer = AnalogSingleChannelWriter(task.out_stream,auto_start=False)
 
             # run first buffer as zeros (hack)
@@ -888,8 +890,6 @@ def expt():
             task.wait_until_done(10)
             task.stop()
 
-            # write the actual waveform to the buffer
-            writer.write_many_sample(buf)
 
             # run practice block
             block_practice()

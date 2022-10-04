@@ -26,8 +26,22 @@ Fs = 20000;
 %% get rid of bad data at end of experiment (for tVNS Danielle.mat)
 %data.data = data.data(1:40210900,:);
 
+if size(data.data,2) == 3
+    ANIN = data.data(:,1);
+    ECG = data.data(:,2);
+    PPG = data.data(:,3);
+    IMP = zeros(size(PPG));
+else
+    ANIN = data.data(:,1);
+    IMP = data.data(:,2);
+    ECG = data.data(:,3);
+    PPG = data.data(:,4);
+end
+
+%% remove DC Offset from ANIN
+ANIN = ANIN-mean(ANIN);
+
 %% get onset of stimulation periods
-ANIN = data.data(:,1);
 ANIN_fs = 10000; % need to find the real sampling rate
 stimFreq = 30;
 hpFreq = 1000;
@@ -38,9 +52,18 @@ padtime=0;
 plot_debug=0;
 flip = 0;
 [onsets,offsets] = findStimulationPeriods(ANIN,ANIN_fs,stimFreq,hpFreq,on_threshold,min_dur,padtime,flip);
+%% add in code to create fake onsets for sham stimulation 
+
+if isempty(onsets) || length(onsets) < 100
+    % 1. generate a random vector 5 minutes long between 3.5 and 4 seconds
+    one_block_fake_onsets = (0:3.5:5*60)+rand(1)/2;
+    onsets = round([one_block_fake_onsets+5*60 one_block_fake_onsets+15*60 one_block_fake_onsets+25*60 one_block_fake_onsets+35*60]*Fs);
+    offsets = round(onsets+0.5*Fs);
+end
+
 %% get peak locations
-samples = 1:length(data.data);
-[peakloc,peakmag] = peakfinder(data.data(:,2),0.5,0.5);
+samples = 1:length(ANIN);
+[peakloc,peakmag] = peakfinder(ECG,0.5,0.5);
 
 %% get onset and offset of stimulation periods
 stim_period_onsets = [onsets(1) onsets(1+find(diff(onsets)>nanmean(diff(onsets))*10))];
@@ -63,11 +86,18 @@ for s = 1:length(block_times)
     end
 end
 
+%% create amplitude vector based on abs max of block
+
+AMP = zeros(size(ANIN));
+for s = 0:max(block_times)
+    block_window = block_times==s;
+    AMP(block_window) = max(abs(ANIN(block_window)));
+end
 
 %% Create table for each heartbeat
 winsize = round(0.06*Fs);
 Ri = 2;
-peak_data = data.data(peakloc(Ri)-10000:peakloc(Ri)+10000,2);
+peak_data = ECG(peakloc(Ri)-10000:peakloc(Ri)+10000);
 
 QRS_durations = zeros(size(peakloc));
 R_amplitudes = zeros(size(peakloc));
@@ -75,10 +105,11 @@ R_wave_peak_times = zeros(size(peakloc));
 time_seconds = zeros(size(peakloc));
 time_minutes = zeros(size(peakloc));
 block_idx = zeros(size(peakloc));
+stim_amplitude = zeros(size(peakloc));
 
 for Ri = 2:length(peakloc)-1 % We skip the first and last beat
     % extract a single pulse
-    peak_data = data.data(peakloc(Ri)-10000:peakloc(Ri)+10000,2);
+    peak_data = ECG(peakloc(Ri)-10000:peakloc(Ri)+10000);
     peak_data = peak_data - median(peak_data);
     %peak_data = peak_data - median(peak_data(1:round(winsize/4))); % use first 1000 samples as a baseline
     
@@ -116,12 +147,16 @@ for Ri = 2:length(peakloc)-1 % We skip the first and last beat
     time_seconds(Ri) = ts(peakloc(Ri));
     time_minutes(Ri) = tm(peakloc(Ri));
     block_idx(Ri) = block_times(peakloc(Ri));
+
+    % get approximate amplitude from stimulation block
+    stim_amplitude(Ri) = AMP(peakloc(Ri));
 end
 
 %% create table from data
 PID = cell(size(peakloc)); PID(:) = {initials};
-T = table(PID, time_seconds, time_minutes, block_idx, QRS_durations,...
-    R_amplitudes, R_wave_peak_times,'VariableNames',{'PID','Second','Minute',...
-    'Block','QRSduration','Ramplitude','Rwavepeaktime'});
+T = table(PID, time_seconds, time_minutes, block_idx, stim_amplitude,...
+    QRS_durations, R_amplitudes, R_wave_peak_times,...
+    'VariableNames',{'PID','Second','Minute','Block','Current', ...
+    'QRSduration','Ramplitude','Rwavepeaktime'});
 %% write table
 writetable(T,['Physiology_tests' filesep  'September_Physio_Tests' filesep 'tVNS testing ' initials '.csv'])

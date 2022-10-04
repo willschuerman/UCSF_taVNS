@@ -4,6 +4,7 @@
 % Script needs to start in the folder containing
 % 'analyze_raw_physio_data.m'
 set(0,'defaultfigurecolor',[1 1 1])
+cd(fileparts(which('ECG_ERP_analysis_091922.m')));
 
 %% Background 
 % Baker & Baker, 1955: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5624990/
@@ -20,26 +21,40 @@ cd(['..' filesep '..' filesep '..'])
 cd('Data')
 
 %% Load data
-initials = 'AP';
+initials = 'JL';
 data = load(['Physiology_tests' filesep  'September_Physio_Tests' filesep 'tVNS testing ' initials '.mat']);
 Fs = 20000;
 %% get rid of bad data at end of experiment (for tVNS Danielle.mat)
 %data.data = data.data(1:40210900,:);
+
+
+if size(data.data,2) == 3
+    ANIN = data.data(:,1);
+    ECG = data.data(:,2);
+    PPG = data.data(:,3);
+    IMP = zeros(size(PPG));
+else
+    ANIN = data.data(:,1);
+    IMP = data.data(:,2);
+    ECG = data.data(:,3);
+    PPG = data.data(:,4);
+end
+
+
 %% plot raw data
 subplot(3,1,1)
-plot(data.data(:,1))
+plot(ANIN)
 title('Stimulator Output')
 subplot(3,1,2)
-plot(data.data(:,2))
+plot(ECG)
 title('Electrocardiogram')
 subplot(3,1,3)
-plot(data.data(:,3))
+plot(PPG)
 title('PPG')
 
 %% close windows
 clf
 %% get onset of stimulation periods
-ANIN = data.data(:,1);
 ANIN_fs = 10000; % need to find the real sampling rate
 stimFreq = 30;
 hpFreq = 1000;
@@ -51,6 +66,14 @@ plot_debug=1;
 flip = 0;
 [onsets,offsets] = findStimulationPeriods(ANIN,ANIN_fs,stimFreq,hpFreq,on_threshold,min_dur,padtime,flip);
 
+%% add in code to create fake onsets for sham stimulation 
+
+if isempty(onsets)
+    % 1. generate a random vector 5 minutes long between 3.5 and 4 seconds
+    one_block_fake_onsets = (0:3.5:5*60)+rand(1)/2;
+    onsets = round([one_block_fake_onsets+5*60 one_block_fake_onsets+15*60 one_block_fake_onsets+25*60 one_block_fake_onsets+35*60]*Fs);
+    offsets = round(onsets+0.5*Fs);
+end
 
 %% display stimulation signal with onsets marked. 
 plot(ANIN)
@@ -59,26 +82,26 @@ vline(onsets,'r-')
 clf
 
 subplot(3,1,1)
-plot(data.data(onsets(1)-10000:onsets(3),1))
+plot(ANIN(onsets(1)-10000:onsets(3)))
 title('Stimulator Output')
 subplot(3,1,2)
-plot(data.data(onsets(1)-10000:onsets(3),2))
+plot(ECG(onsets(1)-10000:onsets(3)))
 title('ECG')
 subplot(3,1,3)
-plot(data.data(onsets(1)-10000:onsets(3),3))
+plot(PPG(onsets(1)-10000:onsets(3)))
 title('PPG')
 
 %% get locations of ECG peaks
 clf
 samples = 1:length(data.data);
-[peakloc,peakmag] = peakfinder(data.data(:,2),0.5,0.5);
-plot(samples,data.data(:,2))
+[peakloc,peakmag] = peakfinder(ECG,0.5,0.5);
+plot(samples,ECG)
 hold on
 scatter(samples(peakloc),data.data(peakloc,2))
 
 %% get onset and offset of stimulation periods
 stim_period_onsets = [onsets(1) onsets(1+find(diff(onsets)>nanmean(diff(onsets))*10))];
-plot(data.data(:,1))
+plot(ANIN)
 title('Stimulator Output')
 hold on
 vline(stim_period_onsets,'r-')
@@ -91,7 +114,7 @@ vline(non_stim_period_onsets,'g-')
 clf
 % extract a single pulse
 Ri = 24;
-peak_data = data.data(peakloc(Ri)-10000:peakloc(Ri)+10000,2);
+peak_data = ECG(peakloc(Ri)-10000:peakloc(Ri)+10000);
 peak_data = peak_data - median(peak_data);
 
 % Because the start of the QRS complex sometimes does not dip just before
@@ -112,7 +135,7 @@ t    = [0:nsamples-1]/Fs;
 winsize = round(0.06*Fs); % window for searching for Q and S
 
 % Find R in window
-[R,TR] = max(peak_data_rotated);
+TR = round(length(peak_data_rotated)/2);
 
 plot(peak_data_rotated)
 hold on
@@ -129,7 +152,7 @@ scatter(SR,S,'filled')
 
 %% For each heart beat, assign it to a block (8 blocks)
 winsize = round(0.06*Fs);
-peak_data = data.data(peakloc(Ri)-10000:peakloc(Ri)+10000,2);
+peak_data = ECG(peakloc(Ri)-10000:peakloc(Ri)+10000);
 block_onsets = sort([stim_period_onsets non_stim_period_onsets]);
 block_data = cell(8,1);
 QRS_durations = cell(8,1);
@@ -146,7 +169,7 @@ end
 
 for Ri = 2:length(peakloc)-1 % We skip the first and last peak
     % extract a single pulse
-    peak_data = data.data(peakloc(Ri)-10000:peakloc(Ri)+10000,2);
+    peak_data = ECG(peakloc(Ri)-10000:peakloc(Ri)+10000);
     peak_data = peak_data - median(peak_data);
     %peak_data = peak_data - median(peak_data(1:round(winsize/4))); % use first 1000 samples as a baseline
     b = find(peakloc(Ri)>=block_onsets,1,'last');
@@ -167,7 +190,7 @@ for Ri = 2:length(peakloc)-1 % We skip the first and last peak
         samps = 1:length(peak_data);
         
         % Find R in window
-        [R,TR] = max(peak_data_rotated);
+        TR = round(length(peak_data_rotated)/2);
             
         % Get Q and S position
         [Q,QR] = min(peak_data_rotated(TR-winsize:TR));
@@ -253,9 +276,6 @@ end
 ylabel('QRS Duration (seconds)')
 legend('Mean QRS duration')
 title(initials)
-
-%% output data into a table/csv
-
 
 
 %%
