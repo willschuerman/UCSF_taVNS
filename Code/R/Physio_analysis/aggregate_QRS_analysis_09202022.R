@@ -6,6 +6,9 @@ library(Hmisc)
 library(tidyverse)
 library(broom)
 
+# define custom color palette
+myPalette <- c("#8961b3","#b55960","#999c47")
+
 
 data_dir <- getwd()
 data_dir <- sub('/Code/R','/Data/Physiology_Tests/September_Physio_Tests/',data_dir)
@@ -110,7 +113,7 @@ data$zValue[data$Variable=='Current'] <- data$Value[data$Variable=='Current']
 data %>% filter(isOutlier==0,Variable!='Current') %>%
   ggplot(aes(x=zValue,fill=PID))+
   geom_histogram()+
-  facet_wrap(c('Variable','PID'),scales='free')+
+  facet_wrap(c('Variable'),scales='free')+
   ggpubr::theme_pubclean()
 
 data.summary <- data %>% filter(isOutlier==0) %>% 
@@ -133,11 +136,13 @@ data.summary <- data %>% filter(isOutlier==0) %>%
 data.summary<- droplevels(data.summary)
 
 data.summary %>% ggplot(aes(x=BlockName,y=Mean,color=Group,group=Group))+
+  geom_hline(yintercept=0)+
   geom_line()+
   geom_point()+
   geom_errorbar(aes(ymin=Lower,ymax=Upper),width=0.1)+
   facet_wrap(c('Variable'),scales='free')+
-  ggpubr::theme_pubclean()
+  ggpubr::theme_pubclean()+
+  scale_color_manual(values=myPalette)
 
 data.summary <- data %>% filter(isOutlier==0) %>% 
   select(Group,PID,BlockName,Variable,Gender,zValue) %>%

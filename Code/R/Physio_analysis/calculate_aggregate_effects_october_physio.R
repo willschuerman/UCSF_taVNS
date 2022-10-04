@@ -16,7 +16,7 @@ file_names <- list.files(path=data_dir,pattern='*2022.xlsx')
 # prepare data
 make_table <- 1
 for(f in file_names){
-  tmp <- read_excel(str_c(data_dir,'/',f),sheet='HRV Stats',n_max=25)
+  tmp <- read_excel(str_c(data_dir,'/',f),sheet='Power Band Stats',n_max=25)
   tmp <- as_tibble(t(tmp),name_repair=T)
   names(tmp) <- as.character(as.vector(tmp[1,]))
   tmp <- tmp[-1,]
@@ -63,18 +63,9 @@ for(f in file_names){
 # 
 # data <- merge(data,data2)
 
-data <- data[,c("Participant", "Order","Minute","Mean Heart Rate", "RSA","Mean IBI","SDNN","RMSSD",'AVNN','NN50','pNN50')]
+data <- data[,c("Participant", "Order","Minute","HF/RSA Power","LF/HF Ratio")]
 data <- data[order(data$Minute),]
 
-data %>%
-  ggplot(aes(x=pNN50,fill=Order))+
-  geom_histogram()+
-  ggpubr::theme_pubclean()
-
-
-# log transform specific variables
-data$SDNN <- log(data$SDNN)
-data$RMSSD <- log(data$RMSSD)
 
 # add in info on block types
 data$BlockType <- ''
@@ -92,6 +83,18 @@ data$BlockType <- factor(data$BlockType, levels=c('Baseline','Stim-A1','Washout1
 # melt data
 data <- melt(data.frame(data),id=c('BlockType','Minute','Participant','Order'))
 
+# detect outliers
+data <- data %>%
+  group_by(Participant, variable) %>%
+  mutate(cValue = scale(value,scale=FALSE)[,1],zValue=scale(value)[,1]) %>% ungroup()
+data$isOutlier <- ifelse(abs(data$zValue) > 5,1,0)
+
+# remove outliers
+data <- data[data$isOutlier==0,]
+
+# remove rows where data is NA
+data <- as.data.frame(data[!is.na(data$isOutlier),])
+
 # center to baseline
 for(p in unique(data$Participant)){
   for(v in unique(data$variable)){
@@ -101,6 +104,13 @@ for(p in unique(data$Participant)){
     data[data$Participant==p & data$variable==v,'zValue'] <- (data[data$Participant==p & data$variable==v,'value'] - base_mean)/base_std
     }
 }
+
+# average over minutes
+data <- data %>% 
+  group_by(Participant,BlockType,Order,variable) %>%
+  summarize(value = mean(value),cValue = mean(cValue),zValue=mean(zValue)) %>%
+  ungroup()
+
 
 data %>% ggplot(aes(x=zValue))+
   geom_histogram()+
@@ -159,33 +169,6 @@ data.summary %>% ggplot(aes(x=BlockType,y=Mean,group=Order,color=Order))+
 
 
 
-data.summary %>% filter(variable %in% c('RSA','RMSSD'))%>%
-  ggplot(aes(x=BlockType,y=Mean,group=Order,color=Order))+
-  geom_point()+
-  geom_line()+
-  geom_hline(yintercept=0)+
-  geom_errorbar(aes(ymin=Lower,ymax=Upper),width=0.1)+
-  facet_wrap('variable',scales='free_y')+
-  ggpubr::theme_pubclean()+
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
-  ylab('Mean (z) ±95% CI')+
-  scale_color_manual(values=myPalette)
-
-
-
-
-
-data.summary %>% filter(variable %in% c('Mean.Heart.Rate','Mean.IBI','SDNN','NN50','pNN50'))%>%
-  ggplot(aes(x=BlockType,y=Mean,group=Order,color=Order))+
-  geom_point()+
-  geom_line()+
-  geom_hline(yintercept=0)+
-  geom_errorbar(aes(ymin=Lower,ymax=Upper),width=0.1)+
-  facet_wrap('variable',scales='free_y')+
-  ggpubr::theme_pubclean()+
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
-  ylab('Mean (z) ±95% CI')+
-  scale_color_manual(values=myPalette)
 
 #### Plot difference from previous block #####
 # 
