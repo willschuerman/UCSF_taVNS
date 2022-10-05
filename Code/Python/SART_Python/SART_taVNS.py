@@ -225,6 +225,7 @@ globalClock = core.Clock()
 trialClock = core.Clock() 
 logging.setDefaultClock(globalClock)
 
+digitperiod = core.StaticPeriod()
 maskperiod = core.StaticPeriod()
 
 # might be better to make each column a dictionary
@@ -419,25 +420,31 @@ def practice_trial(digitvalue,fontsize):
     else:
         trialtype='practice_go'
 
-    # Set up fixation
-    fixation.draw()
-
     # wait for the inter-trial-interval
     core.wait(pretrialpause)
 
-    # Start recording button presses
+    # set up digit
+    digit.draw()
+
+    # Start recording button presses <- Trial Timer Start
     event.clearEvents()
     trialClock.reset()
-            
+    
+    # show digit <- Digit Presentation
+    mywin.flip()
+    digitperiod.start(parameters['maskpresentationtime'])  # start a period of 0.9s
+
+    # Set up Fixation Mask
+    fixation.draw()
+    # wait for digit time to complete
+    digitperiod.complete()
+
     # Show fixation
     mywin.flip()
-    maskperiod.start(parameters['maskpresentationtime'])  # start a period of 0.5s
-    # Draw digit while mask is displayed 
-    digit.draw()
-    maskperiod.complete() 
-    # show digit
-    mywin.flip()
-    core.wait(parameters['digitpresentationtime'])
+    maskperiod.start(parameters['maskpresentationtime'])  # start a period of 0.9s
+    maskperiod.complete()
+
+    # get button responses
     keys = event.getKeys(keyList=["q","space"],timeStamped=trialClock) # get just the first time space was pressed
     print('keys are {}'.format(keys))
     if len(keys) > 0:
@@ -543,8 +550,9 @@ def trial(digitvalue,fontsize,dostim):
     digit.height = fontsize
     digit.text = digitvalue
 
-    # Set up fixation
-    fixation.draw()
+    # Set up digit
+    digit.draw()
+
 
     # wait for the inter-trial-interval
     core.wait(pretrialpause)
@@ -553,23 +561,27 @@ def trial(digitvalue,fontsize,dostim):
     event.clearEvents()
     trialClock.reset()
             
-    # Show fixation
-    mywin.logOnFlip(level=logging.EXP, msg='mask start')
+    # Show digit
+    mywin.logOnFlip(level=logging.EXP, msg='digit start')
     mywin.flip()
-    maskperiod.start(parameters['maskpresentationtime'])  # start a period of 0.5s
 
     # STIMULATE HERE
     if dostim:
         logging.log(level=logging.EXP, msg='stim start')
         task.start()
-        
-    # Draw digit while mask is displayed 
-    digit.draw()
-    maskperiod.complete() 
-    # show digit
-    mywin.logOnFlip(level=logging.EXP, msg='digit start')
+ 
+    # Set up Fixation Mask
+    fixation.draw()
+
+    # wait for digit time to complete
+    digitperiod.complete()
+
+    # show fixation
+    mywin.logOnFlip(level=logging.EXP, msg='fixation start')
     mywin.flip()
-    core.wait(parameters['digitpresentationtime'])
+
+    maskperiod.start(parameters['maskpresentationtime'])  # start a period of 0.9s
+    maskperiod.complete() 
     keys = event.getKeys(keyList=["q","space"],timeStamped=trialClock) # get just the first time space was pressed
 
     if len(keys) > 0:
