@@ -172,9 +172,6 @@ data.summary %>% filter(variable %in% c('RSA','RMSSD'))%>%
   scale_color_manual(values=myPalette)
 
 
-
-
-
 data.summary %>% filter(variable %in% c('Mean.Heart.Rate','Mean.IBI','SDNN','NN50','pNN50'))%>%
   ggplot(aes(x=BlockType,y=Mean,group=Order,color=Order))+
   geom_point()+
@@ -186,6 +183,100 @@ data.summary %>% filter(variable %in% c('Mean.Heart.Rate','Mean.IBI','SDNN','NN5
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
   ylab('Mean (z) ±95% CI')+
   scale_color_manual(values=myPalette)
+
+
+
+data.summary %>% filter(variable %in% c('RSA','RMSSD'), 
+                        BlockType %in% c('Baseline','Stim-A1','Washout1','Stim-A2'),
+                        Order %in% c('Concha - Canal','Sham - Sham'))%>%
+  ggplot(aes(x=BlockType,y=Mean,group=Order,color=Order))+
+  geom_point()+
+  geom_line()+
+  geom_hline(yintercept=0)+
+  geom_errorbar(aes(ymin=Lower,ymax=Upper),width=0.1)+
+  facet_wrap('variable',scales='free_y')+
+  ggpubr::theme_pubclean()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  ylab('Mean (z) ±95% CI')+
+  scale_color_manual(values=myPalette[c(2,1)])
+
+
+
+data.summary %>% filter(variable %in% c('RSA','RMSSD'), 
+                        BlockType %in% c('Baseline','Stim-A1','Washout1','Stim-A2'),
+                        Order %in% c('Canal - Concha','Sham - Sham'))%>%
+  ggplot(aes(x=BlockType,y=Mean,group=Order,color=Order))+
+  geom_point()+
+  geom_line()+
+  geom_hline(yintercept=0)+
+  geom_errorbar(aes(ymin=Lower,ymax=Upper),width=0.1)+
+  facet_wrap('variable',scales='free_y')+
+  ggpubr::theme_pubclean()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  ylab('Mean (z) ±95% CI')+
+  scale_color_manual(values=myPalette[c(2,1)])
+
+
+# 
+# #### Just selecting one type of stimulation
+# data$StimType <- 'Sham'
+# data$StimType[data$BlockType=='Stim-A1' & data$Order=='Canal - Concha'] <- 'Canal'
+# data$StimType[data$BlockType=='Stim-A2' & data$Order=='Canal - Concha'] <- 'Canal'
+# data$StimType[data$BlockType=='Stim-B1' & data$Order=='Canal - Concha'] <- 'Concha'
+# data$StimType[data$BlockType=='Stim-B2' & data$Order=='Canal - Concha'] <- 'Concha'
+# data$StimType[data$BlockType=='Stim-A1' & data$Order=='Concha - Canal'] <- 'Concha'
+# data$StimType[data$BlockType=='Stim-A2' & data$Order=='Concha - Canal'] <- 'Concha'
+# data$StimType[data$BlockType=='Stim-B1' & data$Order=='Concha - Canal'] <- 'Canal'
+# data$StimType[data$BlockType=='Stim-B2' & data$Order=='Concha - Canal'] <- 'Canal'
+# data$StimType[data$BlockType=='Baseline' & data$Order=='Concha - Canal'] <- 'Concha'
+# data$StimType[data$BlockType=='Baseline' & data$Order=='Canal - Concha'] <- 'Canal'
+# data$StimType[data$BlockType=='Washout1' & data$Order=='Concha - Canal'] <- 'Concha'
+# data$StimType[data$BlockType=='Washout1' & data$Order=='Canal - Concha'] <- 'Canal'
+# data$StimType[data$BlockType=='Washout2' & data$Order=='Concha - Canal'] <- 'Concha'
+# data$StimType[data$BlockType=='Washout2' & data$Order=='Canal - Concha'] <- 'Canal'
+# data$StimType[data$BlockType=='Washout3' & data$Order=='Concha - Canal'] <- 'Concha'
+# data$StimType[data$BlockType=='Washout3' & data$Order=='Canal - Concha'] <- 'Canal'
+# data$StimType[data$BlockType=='Washout4' & data$Order=='Concha - Canal'] <- 'Concha'
+# data$StimType[data$BlockType=='Washout5' & data$Order=='Canal - Concha'] <- 'Canal'
+# 
+# data$StimType <- as.factor(data$StimType)
+# 
+# 
+# ###
+# 
+# # calculate mean and 95% CI for each group and variable
+# data.summary <- data %>% 
+#   select(StimType,BlockType,variable,zValue) %>% # here, change to value/cValue/zValue
+#   group_by(StimType,BlockType,variable) %>%
+#   summarise(data = list(smean.cl.boot(cur_data(), conf.int = .95, B = 1000, na.rm = TRUE))) %>%
+#   tidyr::unnest_wider(data)
+# 
+# 
+# data.summary %>% filter(variable %in% c('RSA','RMSSD'),StimType!='Canal') %>% 
+#   ggplot(aes(x=BlockType,y=Mean,group=StimType,color=StimType))+
+#   geom_point()+
+#   geom_line()+
+#   geom_hline(yintercept=0)+
+#   geom_errorbar(aes(ymin=Lower,ymax=Upper),width=0.1)+
+#   facet_wrap('variable',scales='free_y')+
+#   ggpubr::theme_pubclean()+
+#   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+#   ylab('Mean (z) ±95% CI')+
+#   scale_color_manual(values=myPalette[c(2,1)])
+# 
+# data.summary %>% filter(variable %in% c('RSA','RMSSD'),StimType!='Concha') %>% 
+#   ggplot(aes(x=BlockType,y=Mean,group=StimType,color=StimType))+
+#   geom_point()+
+#   geom_line()+
+#   geom_hline(yintercept=0)+
+#   geom_errorbar(aes(ymin=Lower,ymax=Upper),width=0.1)+
+#   facet_wrap('variable',scales='free_y')+
+#   ggpubr::theme_pubclean()+
+#   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+#   ylab('Mean (z) ±95% CI')+
+#   scale_color_manual(values=myPalette[c(3,1)])
+# 
+
 
 #### Plot difference from previous block #####
 # 

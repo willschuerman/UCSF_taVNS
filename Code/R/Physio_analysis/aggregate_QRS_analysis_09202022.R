@@ -49,6 +49,7 @@ data <- data %>%
   mutate(cValue = scale(Value,scale=FALSE)[,1],zValue=scale(Value)[,1]) %>% ungroup()
 data$isOutlier <- ifelse(abs(data$zValue) > 5,1,0)
 data$isOutlier[data$Variable=='Current'] <- 0
+data <- data %>% filter(isOutlier ==0)
 
 # add information about each block
 concha_then_canal <- c('CR','PH','MQ','QG')
@@ -96,7 +97,7 @@ data$BlockType <- factor(data$BlockType,levels=c('Baseline','Rest','Concha','Can
 # center and normalize to baseline
 for(p in unique(data$PID)){
   for(v in unique(data$Variable)){
-    data[data$PID==p & data$Variable==v,]$Second = data[data$PID==p & data$Variable==v,]$Second - min(data[data$PID==p & data$Variable==v,]$Second)
+    data[data$PID==p & data$Variable==v,]$Second = data[data$PID==p & data$Variable==v,]$Second - min(data[data$PID==p & data$Variable==v,]$Second) # start time at 0
     base_mean = mean(data[data$PID==p & data$Variable==v & data$BlockType=='Baseline',]$Value,na.rm=T)
     base_std = sd(data[data$PID==p & data$Variable==v & data$BlockType=='Baseline',]$Value,na.rm=T)
     data[data$PID==p & data$Variable==v,]$cValue <- (data[data$PID==p & data$Variable==v,]$Value - base_mean)
@@ -135,7 +136,8 @@ data.summary <- data %>% filter(isOutlier==0) %>%
   tidyr::unnest_wider(data)
 data.summary<- droplevels(data.summary)
 
-data.summary %>% ggplot(aes(x=BlockName,y=Mean,color=Group,group=Group))+
+data.summary %>% filter(Variable %in% c('Current', 'QRSduration')) %>%
+  ggplot(aes(x=BlockName,y=Mean,color=Group,group=Group))+
   geom_hline(yintercept=0)+
   geom_line()+
   geom_point()+
@@ -144,20 +146,24 @@ data.summary %>% ggplot(aes(x=BlockName,y=Mean,color=Group,group=Group))+
   ggpubr::theme_pubclean()+
   scale_color_manual(values=myPalette)
 
+
 data.summary <- data %>% filter(isOutlier==0) %>% 
-  select(Group,PID,BlockName,Variable,Gender,zValue) %>%
-  group_by(PID,Variable,Group,Gender,BlockName) %>%
+  select(Group,BlockName,Variable,zValue) %>%
+  group_by(Variable,Group,BlockName) %>%
   summarise(data = list(smean.cl.boot(cur_data(), conf.int = .95, B = 1000, na.rm = TRUE))) %>%
   tidyr::unnest_wider(data)
 data.summary<- droplevels(data.summary)
 
-data.summary %>% ggplot(aes(x=BlockName,y=Mean,color=PID,group=PID))+
+data.summary %>% filter(Variable %in% c('Current', 'QRSduration')) %>%
+  ggplot(aes(x=BlockName,y=Mean,color=Group,group=Group))+
+  geom_hline(yintercept=0)+
   geom_line()+
   geom_point()+
-  geom_hline(yintercept=0)+
   geom_errorbar(aes(ymin=Lower,ymax=Upper),width=0.1)+
-  facet_grid(Variable~Group,scales='free')+
-  ggpubr::theme_pubclean()
+  facet_wrap(c('Variable'),scales='free')+
+  ggpubr::theme_pubclean()+
+  scale_color_manual(values=myPalette)
+
 
 #### Temporal Analyses ####
 

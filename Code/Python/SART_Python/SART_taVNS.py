@@ -53,7 +53,7 @@ cognitiveloadsart = "CognitiveLoadSART.mp3"
 ####################################################################################################
 
 expressions = {'buttoninstruct1': "",
-'buttoninstruct2': "Place your index finger of your dominant hand on the {} button.".format(parameters['responsekey_label'])
+'buttoninstruct2': "Place your index finger of your dominant hand on the {} button. Press {} to start.".format(parameters['responsekey_label'],parameters['responsekey_label'])
 }
 
 ##############################################################################################################
@@ -432,7 +432,7 @@ def practice_trial(digitvalue,fontsize):
     
     # show digit <- Digit Presentation
     mywin.flip()
-    digitperiod.start(parameters['maskpresentationtime'])  # start a period of 0.9s
+    digitperiod.start(parameters['digitpresentationtime'])  # start a period of 0.9s
 
     # Set up Fixation Mask
     fixation.draw()
@@ -564,6 +564,8 @@ def trial(digitvalue,fontsize,dostim):
     # Show digit
     mywin.logOnFlip(level=logging.EXP, msg='digit start')
     mywin.flip()
+    digitperiod.start(parameters['digitpresentationtime'])  # start a period of 0.9s
+
 
     # STIMULATE HERE
     if dostim:
@@ -831,7 +833,7 @@ def block_SART(trialcount,b,stim_block):
             int(parameters['digitpresentationtime']*100), int(parameters['maskpresentationtime']*100), trialtype, digitvalue, fontsize,
             response, correct, RT, latency, latencytype, responsetype, count_anticipatory,correctsuppressions, count_NoGo, 
             incorrectsuppressions, count_Go, count_validGo, 
-            dostim,parameters['amp'],subject_order] #
+            dostim,params['amp'],subject_order] #
         record_data(raw_data_writer,trial_data)
 
         # update trial values
