@@ -158,7 +158,6 @@ data.summary %>% ggplot(aes(x=BlockType,y=Mean,group=Order,color=Order))+
   scale_color_manual(values=myPalette)
 
 
-
 data.summary %>% filter(variable %in% c('RSA','RMSSD'))%>%
   ggplot(aes(x=BlockType,y=Mean,group=Order,color=Order))+
   geom_point()+
@@ -186,7 +185,83 @@ data.summary %>% filter(variable %in% c('Mean.Heart.Rate','Mean.IBI','SDNN','NN5
 
 
 
-data.summary %>% filter(variable %in% c('RSA','RMSSD'), 
+p <- data.summary %>% filter(variable %in% c('RSA','RMSSD'), 
+                        BlockType %in% c('Baseline','Stim-A1','Washout1','Stim-A2','Washout2'),
+                        Order %in% c('Concha - Canal','Sham - Sham'))%>%
+  ggplot(aes(x=BlockType,y=Mean,group=Order,color=Order))+
+  geom_point()+
+  geom_line()+
+  geom_hline(yintercept=0)+
+  geom_errorbar(aes(ymin=Lower,ymax=Upper),width=0.1)+
+  facet_wrap('variable',scales='free_y')+
+  ggpubr::theme_pubclean()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  ylab('Mean (z) ±95% CI')+
+  theme(legend.title = element_blank(),legend.text=element_text(size=15))+
+  scale_color_manual(values=myPalette[c(2,1)],label=c('Concha','Sham'))
+
+ggsave("/Users/williamschuerman/Desktop/SRA Presentation Figures/concha_agg.png", width = 20, height = 10, units = "cm")
+
+
+
+p <- data.summary %>% filter(variable %in% c('Mean.Heart.Rate','Mean.IBI','SDNN','pNN50'), 
+                             BlockType %in% c('Baseline','Stim-A1','Washout1','Stim-A2','Washout2'),
+                             Order %in% c('Concha - Canal','Sham - Sham'))%>%
+  ggplot(aes(x=BlockType,y=Mean,group=Order,color=Order))+
+  geom_point()+
+  geom_line()+
+  geom_hline(yintercept=0)+
+  geom_errorbar(aes(ymin=Lower,ymax=Upper),width=0.1)+
+  facet_wrap('variable',scales='free_y')+
+  ggpubr::theme_pubclean()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  ylab('Mean (z) ±95% CI')+
+  theme(legend.title = element_blank(),legend.text=element_text(size=15))+
+  scale_color_manual(values=myPalette[c(2,1)],label=c('Concha','Sham'))
+
+ggsave("/Users/williamschuerman/Desktop/SRA Presentation Figures/concha_agg_altmetrics.png", width = 20, height = 10, units = "cm")
+
+
+p <- data.summary %>% filter(variable %in% c('RSA','RMSSD'), 
+                        BlockType %in% c('Baseline','Stim-A1','Washout1','Stim-A2','Washout2'),
+                        Order %in% c('Canal - Concha','Sham - Sham'))%>%
+  ggplot(aes(x=BlockType,y=Mean,group=Order,color=Order))+
+  geom_point()+
+  geom_line()+
+  geom_hline(yintercept=0)+
+  geom_errorbar(aes(ymin=Lower,ymax=Upper),width=0.1)+
+  facet_wrap('variable',scales='free_y')+
+  ggpubr::theme_pubclean()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  ylab('Mean (z) ±95% CI')+
+  theme(legend.title = element_blank(),legend.text=element_text(size=15))+
+  scale_color_manual(values=myPalette[c(3,1)],label=c('Canal','Sham'))
+ggsave("/Users/williamschuerman/Desktop/SRA Presentation Figures/canal_agg.png", width = 20, height = 10, units = "cm")
+
+
+
+
+p <- data.summary %>% filter(variable %in% c('Mean.Heart.Rate','Mean.IBI','SDNN','pNN50'), 
+                             BlockType %in% c('Baseline','Stim-A1','Washout1','Stim-A2','Washout2'),
+                             Order %in% c('Concha - Canal','Sham - Sham'))%>%
+  ggplot(aes(x=BlockType,y=Mean,group=Order,color=Order))+
+  geom_point()+
+  geom_line()+
+  geom_hline(yintercept=0)+
+  geom_errorbar(aes(ymin=Lower,ymax=Upper),width=0.1)+
+  facet_wrap('variable',scales='free_y')+
+  ggpubr::theme_pubclean()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  ylab('Mean (z) ±95% CI')+
+  theme(legend.title = element_blank(),legend.text=element_text(size=15))+
+  scale_color_manual(values=myPalette[c(2,1)],label=c('Concha','Sham'))
+
+ggsave("/Users/williamschuerman/Desktop/SRA Presentation Figures/concha_agg_altmetrics.png", width = 20, height = 10, units = "cm")
+
+
+
+
+data.summary %>% filter(variable %in% c('Mean.Heart.Rate','Mean.IBI','SDNN','pNN50'),
                         BlockType %in% c('Baseline','Stim-A1','Washout1','Stim-A2'),
                         Order %in% c('Concha - Canal','Sham - Sham'))%>%
   ggplot(aes(x=BlockType,y=Mean,group=Order,color=Order))+
@@ -198,11 +273,11 @@ data.summary %>% filter(variable %in% c('RSA','RMSSD'),
   ggpubr::theme_pubclean()+
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
   ylab('Mean (z) ±95% CI')+
-  scale_color_manual(values=myPalette[c(2,1)])
+  theme(legend.title = element_blank(),legend.text=element_text(size=15))+
+  scale_color_manual(values=myPalette[c(2,1)],label=c('Concha','Sham'))
 
 
-
-data.summary %>% filter(variable %in% c('RSA','RMSSD'), 
+data.summary %>% filter(variable %in% c('Mean.Heart.Rate','Mean.IBI','SDNN','pNN50'),
                         BlockType %in% c('Baseline','Stim-A1','Washout1','Stim-A2'),
                         Order %in% c('Canal - Concha','Sham - Sham'))%>%
   ggplot(aes(x=BlockType,y=Mean,group=Order,color=Order))+
@@ -214,7 +289,53 @@ data.summary %>% filter(variable %in% c('RSA','RMSSD'),
   ggpubr::theme_pubclean()+
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
   ylab('Mean (z) ±95% CI')+
-  scale_color_manual(values=myPalette[c(2,1)])
+  theme(legend.title = element_blank(),legend.text=element_text(size=15))+
+  scale_color_manual(values=myPalette[c(3,1)],label=c('Concha','Sham'))
+
+
+
+# calculate mean and 95% CI for each group and variable
+data.summary <- data %>% 
+  select(Order,BlockType,Participant,variable,zValue) %>% # here, change to value/cValue/zValue
+  group_by(Order,BlockType,Participant,variable) %>%
+  summarise(data = list(smean.cl.boot(cur_data(), conf.int = .95, B = 1000, na.rm = TRUE))) %>%
+  tidyr::unnest_wider(data)
+
+
+p <- data.summary %>% filter(variable %in% c('RSA','RMSSD'), 
+                        BlockType %in% c('Baseline','Stim-A1','Washout1','Stim-A2','Washout2'),
+                        Order %in% c('Concha - Canal','Sham - Sham'))%>%
+  ggplot(aes(x=BlockType,y=Mean,group=Participant,color=Order))+
+  geom_point()+
+  geom_line()+
+  geom_hline(yintercept=0)+
+  #geom_errorbar(aes(ymin=Lower,ymax=Upper),width=0.1)+
+  facet_wrap('variable',scales='free_y')+
+  ggpubr::theme_pubclean()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  ylab('Mean (z) ±95% CI')+
+  theme(legend.title = element_blank(),legend.text=element_text(size=15))+
+  scale_color_manual(values=myPalette[c(2,1)],label=c('Concha','Sham'))
+ggsave("/Users/williamschuerman/Desktop/SRA Presentation Figures/concha_ind.png", width = 20, height = 10, units = "cm")
+
+
+
+
+p <- data.summary %>% filter(variable %in% c('RSA','RMSSD'), 
+                             BlockType %in% c('Baseline','Stim-A1','Washout1','Stim-A2','Washout2'),
+                             Order %in% c('Canal - Concha','Sham - Sham'))%>%
+  ggplot(aes(x=BlockType,y=Mean,group=Participant,color=Order))+
+  geom_point()+
+  geom_line()+
+  geom_hline(yintercept=0)+
+  #geom_errorbar(aes(ymin=Lower,ymax=Upper),width=0.1)+
+  facet_wrap('variable',scales='free_y')+
+  ggpubr::theme_pubclean()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  ylab('Mean (z) ±95% CI')+
+  theme(legend.title = element_blank(),legend.text=element_text(size=15))+
+  scale_color_manual(values=myPalette[c(3,1)],label=c('Canal','Sham'))
+ggsave("/Users/williamschuerman/Desktop/SRA Presentation Figures/canal_ind.png", width = 20, height = 10, units = "cm")
 
 
 # 
