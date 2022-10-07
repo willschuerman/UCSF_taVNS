@@ -219,7 +219,7 @@ p <- data.summary %>% filter(variable %in% c('Mean.Heart.Rate','Mean.IBI','SDNN'
   theme(legend.title = element_blank(),legend.text=element_text(size=15))+
   scale_color_manual(values=myPalette[c(2,1)],label=c('Concha','Sham'))
 
-ggsave("/Users/williamschuerman/Desktop/SRA Presentation Figures/concha_agg_altmetrics.png", width = 20, height = 10, units = "cm")
+ggsave("/Users/williamschuerman/Desktop/SRA Presentation Figures/concha_agg_altmetrics.png", width = 20, height = 15, units = "cm")
 
 
 p <- data.summary %>% filter(variable %in% c('RSA','RMSSD'), 
@@ -243,7 +243,7 @@ ggsave("/Users/williamschuerman/Desktop/SRA Presentation Figures/canal_agg.png",
 
 p <- data.summary %>% filter(variable %in% c('Mean.Heart.Rate','Mean.IBI','SDNN','pNN50'), 
                              BlockType %in% c('Baseline','Stim-A1','Washout1','Stim-A2','Washout2'),
-                             Order %in% c('Concha - Canal','Sham - Sham'))%>%
+                             Order %in% c('Canal - Concha','Sham - Sham'))%>%
   ggplot(aes(x=BlockType,y=Mean,group=Order,color=Order))+
   geom_point()+
   geom_line()+
@@ -254,9 +254,9 @@ p <- data.summary %>% filter(variable %in% c('Mean.Heart.Rate','Mean.IBI','SDNN'
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
   ylab('Mean (z) ±95% CI')+
   theme(legend.title = element_blank(),legend.text=element_text(size=15))+
-  scale_color_manual(values=myPalette[c(2,1)],label=c('Concha','Sham'))
+  scale_color_manual(values=myPalette[c(3,1)],label=c('Canal','Sham'))
 
-ggsave("/Users/williamschuerman/Desktop/SRA Presentation Figures/concha_agg_altmetrics.png", width = 20, height = 10, units = "cm")
+ggsave("/Users/williamschuerman/Desktop/SRA Presentation Figures/canal_agg_altmetrics.png", width = 20, height = 15, units = "cm")
 
 
 
