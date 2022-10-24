@@ -21,21 +21,24 @@ cd('Data')
 
 %data = load(['Biopac_Tests' filesep 'tVNS testing 100k sampling rate.mat']);
 %data = load(['Biopac_Tests' filesep 'tVNS_testing_100k_09082022.mat']);
-data = load(['Biopac_Tests' filesep 'tVNS testing 100k sampling rate_10.12.mat']);
+data = load(['Biopac_Tests' filesep 'tVNS testing 100k sampling rate_10.20_red to black.mat']);
 
 Fs = 100000;
 %% get rid of bad data at end of experiment (for tVNS Danielle.mat)
 %data.data = data.data(1:40210900,:);
-data.data = data.data(12795819:end);
+%data.data = data.data(12795819:end);
+data.data = data.data(1:round(length(data.data)*0.4));
 %% plot raw data
 t = (1:length(data.data))/Fs;
 d = data.data;
 %d = data.data*10;
 d = d - mean(d);
-plot(t,d)
+plot(t,d,'LineWidth',2)
 title('Stimulator Output')
-
-
+set(gca,'FontName','Arial','FontSize',14)
+grid on
+xlabel('Time (s)')
+ylabel('Current (mA)')
 
 %% close windows
 close all
