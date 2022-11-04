@@ -252,15 +252,13 @@ ggplot(d,aes(x=time,y=RT,color=stimblock,group=stimblock))+
 
 #### visualize raw metrics ####
 
-d <- summarySE(data,measurevar='values.RT',groupvars=c('blocknum','stimblock'))
-d$stimblock <- as.factor(d$stimblock)
-ggplot(d[d$blocknum>0,],aes(x=blocknum,y=values.RT,color=stimblock,group=stimblock))+
-  geom_point()+
+d <- summarySE(data[data$blocknum>0,],measurevar='values.RT',groupvars=c('blocknum','stimblock','subject'))
+ggplot(d[d$blocknum>0,],aes(x=blocknum,y=values.RT,shape=stimblock,color=subject,group=subject))+
+  geom_point(size=3)+
   geom_line()+
   geom_errorbar(aes(ymin=values.RT-ci,ymax=values.RT+ci),width=0.1)+
   ggpubr::theme_pubclean()+
   scale_color_manual(values=myPalette)
-
 
 d <- summarySE(data[data$blocknum>0,],measurevar='values.RT',groupvars=c('blocknum','stimblock','subject','trialcode'))
 ggplot(d[d$blocknum>0,],aes(x=blocknum,y=values.RT,shape=stimblock,color=subject,group=subject))+
