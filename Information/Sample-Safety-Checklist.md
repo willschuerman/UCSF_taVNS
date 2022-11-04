@@ -50,9 +50,9 @@ Review the general safety measures prior to each stimulation session and follow 
 1. Make sure that electrode leads are NOT connected to stimulator.
 2. Check whether procedure and all risks involved have been explained to participant/patient, and that they have signed Consent/HIPAA.
 3. Clean participant/patient’s ear with alcohol (wipe, swab).
-4. Make a mold of participant/patient’s ear using putty. 
-5. Affix electrodes to putty and add a dollop of Gel 104 to each disc. 
-6. Abrade participant's ear using Q-Tip (NuPrep optional)
+4. Abrade participant's ear using Q-Tip (NuPrep optional)
+5. Make a mold of participant/patient’s ear using putty. 
+6. Affix electrodes to putty and add a dollop of Gel 104 to each disc. 
 7. Affix electrodes firmly to target auricular sites using putty. 
 8. Check whether participant is comfortable and ready to begin. Make sure laptop and stimulator are not facing participant. 
 
