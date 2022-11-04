@@ -38,7 +38,7 @@ Review the general safety measures prior to each stimulation session and follow 
 
 1. Electrodes are not attached to the stimulator or patient. 
 2. STMISOLA stimulator is plugged into external battery, turn On, set mode to V (Voltage) and resistance (yellow switch) to 1kOhm. Hold Reset button for 3 seconds until Red light turns off.
-3. Two-Tinned Wire is securely connected to 3.5mm audio jack to AO1 (analog out 1) and AO GND (ground) on DAQ card.
+3. Two-Tinned Wire is securely connected to 3.5mm audio jack to AO1 (analog out 1; red wire) and AO GND (ground; black wire) on DAQ card.
 4. STMISOLA audio cable is plugged into 3.5mm audio jack of Two-Tinned Wire (-> USB)
 5. DAQ card is plugged into task laptop via USB. 
 6. On front of stimulator, Current Limiting Circuit is plugged into (+).
