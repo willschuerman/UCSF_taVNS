@@ -35,7 +35,7 @@ get_event_matrix <- function(idx_vector,data_vector,btrial){
     idx_start_stop <- adjust_idx(idx,btrial)
     midx_start <- 5-(idx-idx_start_stop[1])
     midx_stop <- 5+(idx_start_stop[2]-idx)
-    event_matrix[counter,midx_start:midx_stop] <- data_vector[idx_start_stop[1]:idx_start_stop[2]]
+    event_matrix[counter,seq(midx_start,midx_stop)] <- data_vector[seq(idx_start_stop[1],idx_start_stop[2])]
     counter <- counter+1
   }
   return(event_matrix)
@@ -56,42 +56,41 @@ make_event_df <- function(idx,RT,btrial,matrix_names,event_type){
 }
 
 # need to add block ids
-calc_event_metrics <- function(accuracy,RT,anticipations,comissions,omissions,btrial){
+calc_event_metrics <- function(accuracy,RT,anticipations,commissions,omissions,btrial,trialcode){
   matrix_names <- c('t-4','t-3','t-2','t-1','t0','t+1','t+2','t+3','t+4')
 
   # find ids of errors and collect RTs
   idx = which(accuracy==0)
-  event_data <-  make_event_df(idx,RT,btrial,matrix_names,event_type)
+  event_data <-  make_event_df(idx,RT,btrial,matrix_names,'error')
   
   # find ids of correct trials and collect RTs
   idx = which(accuracy==1)
-  tmp <-  make_event_df(idx,RT,btrial,matrix_names,event_type)
+  tmp <-  make_event_df(idx,RT,btrial,matrix_names,'correct')
   event_data <- rbind(event_data,tmp)
   
   # find ids of go trials and collect RTs
   idx = which(trialcode=='go')
-  tmp <-  make_event_df(idx,RT,btrial,matrix_names,event_type)
+  tmp <-  make_event_df(idx,RT,btrial,matrix_names,'go')
   event_data <- rbind(event_data,tmp)
   
   # find ids of anticipations and collect RTs
   idx = which(trialcode=='nogo')
-  tmp <-  make_event_df(idx,RT,btrial,matrix_names,event_type)
+  tmp <-  make_event_df(idx,RT,btrial,matrix_names,'nogo')
   event_data <- rbind(event_data,tmp)
   
   # find ids of anticipations and collect RTs
   idx = which(anticipations==1)
-  tmp <-  make_event_df(idx,RT,btrial,matrix_names,event_type)
+  tmp <-  make_event_df(idx,RT,btrial,matrix_names,'anticipation')
   event_data <- rbind(event_data,tmp)
   
-
-  # find ids of comissions and collect RTs
-  idx = which(comissions==1)
-  tmp <-  make_event_df(idx,RT,btrial,matrix_names,event_type)
+  # find ids of commissions and collect RTs
+  idx = which(commissions==1)
+  tmp <-  make_event_df(idx,RT,btrial,matrix_names,'commission')
   event_data <- rbind(event_data,tmp)
   
   # find ids of omissions and collect RTs
   idx = which(omissions==1)
-  tmp <-  make_event_df(idx,RT,btrial,matrix_names,event_type)
+  tmp <-  make_event_df(idx,RT,btrial,matrix_names,'omission')
   event_data <- rbind(event_data,tmp)
   
   # clean up data frame
@@ -148,7 +147,7 @@ data$subject <- as.factor(data$subject)
 data$commission_error <- ifelse(data$trialcode=='go',0,
                                 ifelse(data$correct==0,1,0))
 # 1.2 Errors of omission (failure to respond to non-target)
-data$ommission_error <- ifelse(data$trialcode=='nogo',0,
+data$omission_error <- ifelse(data$trialcode=='nogo',0,
                                ifelse(data$correct==0,1,0))
 
 # 2. Speed / Efficiency of processing
@@ -171,8 +170,9 @@ for(s in unique(data$subject)){
     tmp <- calc_event_metrics(data_in$correct,data_in$values.RT,
                               data_in$anticipation,
                               data_in$commission_error,
-                              data_in$ommission_error,
-                              data_in$btrial)
+                              data_in$omission_error,
+                              data_in$btrial,
+                              data_in$trialcode)
     tmp$blocknum <- b
     tmp$subject <- s
     if(make_df){
@@ -242,7 +242,7 @@ ggplot(accuracy.summary[accuracy.summary$blocknum>0 &
                             "correct_rejections","hit_rate", "miss_rate", 
                             "fa_rate", "hit_rate_adjusted", "fa_rate_adjusted", 
                             "dprime", "dprime_adjusted", "aprime"),],
-       aes(x=blocknum,y=value,color=subject,group=subject,shape=stimblock))+
+       aes(x=blocknum,y=value,color=stimblock,group=subject,shape=subject))+
   geom_point()+
   geom_line()+
   facet_wrap('variable',scales='free')+
@@ -254,15 +254,18 @@ ggplot(accuracy.summary[accuracy.summary$blocknum>0 &
 
 d <- summarySE(event_data,measurevar='RT',groupvars=c('time','type','stimblock','subject'),na.rm=T)
 d$type <- as.factor(d$type)
-levels(d$type) <- c("anticipation error", "comission error", "all errors", "omission error")
+levels(d$type) <- c("anticipation errors", "commission errors", "correct", 
+                    "all errors", "go trial", "nogo trial", "omission error")
+d$type <- relevel(d$type,'omission error')
 d$type <- relevel(d$type,'all errors')
+
 ggplot(d,aes(x=time,y=RT,color=stimblock,group=stimblock))+
   geom_vline(xintercept='t0')+
   geom_point()+
   geom_errorbar(aes(ymin=RT-ci,ymax=RT+ci),width=0.2)+
   geom_line()+
   facet_grid(subject~type,scales='free')+
-  ggpubr::theme_pubclean()+
+  ggpubr::theme_pubr()+
   scale_color_manual(values=myPalette)
 
 
@@ -308,3 +311,36 @@ ggplot(d[d$blocknum>0,],aes(x=blocknum,y=correct,color=stimblock,group=trialcode
 
 
 
+##### test #####
+
+
+
+ggplot(data,aes(x=values.RT))+
+  geom_histogram(binwidth=1)+
+  facet_wrap('subject')+
+  ggpubr::theme_pubclean()
+
+
+
+
+ggplot(data[data$blockcode=='SART',],aes(x=values.RT))+
+  geom_histogram(binwidth=30)+
+  facet_grid(subject~.,scales='free')+
+  ggpubr::theme_pubclean()
+
+
+
+
+
+tmp <- data[data$blocknum==1 & data$subject=='501',]
+error_idx <- which(tmp$correct==0)
+
+
+
+er <- error_idx[1]
+dat <- tmp$values.RT[seq(er-4,er+4)]
+plot(dat)
+for(er in error_idx[-1]){
+  dat <- tmp$values.RT[seq(er-4,er+4)]
+  points(dat)
+}
