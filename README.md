@@ -23,4 +23,4 @@ The repository is divided into the following sections:
         - Python_taVNS (code for running simple, custom experiments with PsychoPy)
         - SART_Python (Sustained Attention Response Task)
     - R
-        - R_analysis (code for analyzing and plotting data from physio experiments)
+        - R_analysis (code for analyzing and plotting data from physio/SART experiments)
