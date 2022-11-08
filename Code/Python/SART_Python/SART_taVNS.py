@@ -431,8 +431,9 @@ def practice_trial(digitvalue,fontsize):
     trialClock.reset()
     
     # show digit <- Digit Presentation
+    mywin.logOnFlip(level=logging.EXP, msg='digit start')
     mywin.flip()
-    digitperiod.start(parameters['digitpresentationtime'])  # start a period of 0.9s
+    digitperiod.start(parameters['digitpresentationtime'])  # start a period of 0.25s
 
     # Set up Fixation Mask
     fixation.draw()
