@@ -6,7 +6,6 @@
 ##############################################################################################################
 from __future__ import division
 from psychopy import visual, core, gui,event, logging, info
-from psychopy.visual.ratingscale import RatingScale
 import numpy as np
 import random
 import csv

@@ -1,3 +1,9 @@
+###
+# there seem to be three solutions
+# one: use keyboard class (kb)
+# two: use iohub class
+# three: use event class and call on each flip (limits to resolution)
+
 
 
 ##############################################################################################################
@@ -6,8 +12,7 @@
 ##############################################################################################################
 ##############################################################################################################
 from __future__ import division
-from psychopy import visual, core, gui,event, logging, info
-from psychopy.visual.ratingscale import RatingScale
+from psychopy import visual, core, gui,event, keyboard, logging, info
 import numpy as np
 import random
 import csv
@@ -56,6 +61,8 @@ cognitiveloadsart = "CognitiveLoadSART.mp3"
 # script requires Inquisit 5.0.5.0 or higher
 # Ideally, we will bundle this into a docker thing or something like that 
 # can change these to be psychopy/python versions, but hopefully won't be necessary
+
+kb = keyboard.Keyboard()
 
 defaults = {'fontstyle': 'Arial',
     'fontsize' : 0.05,
@@ -185,9 +192,6 @@ for tr in range(20):
     # set up digit
     digit.draw()
 
-    # Set keyboard presses to none
-    key_pressed = False
-
     # Start recording button presses <- Trial Timer Start
     event.clearEvents()
     trialClock.reset()
@@ -196,22 +200,20 @@ for tr in range(20):
     mywin.logOnFlip(level=logging.EXP, msg='digit start')
     while trialClock().getTime() <= parameters['digitpresentationtime']:
         mywin.flip()
-        if key_pressed == False:
-            keys = event.getKeys(keyList=["q","space"],waitRelease=False,timeStamped=trialClock) # get just the first time space was pressed
 
         #digitperiod.start(parameters['digitpresentationtime'])  # start a period of 0.25s
 
     # Set up Fixation Mask
     fixation.draw()
-
     mywin.logOnFlip(level=logging.EXP, msg='mask start')
     while trialClock().getTime() <= parameters['maskpresentationtime']:
         mywin.flip()
-        if key_pressed == False:
-            keys = event.getKeys(keyList=["q","space"],waitRelease=False,timeStamped=trialClock) # get just the first time space was pressed
+    
+    
+    keys = event.getKeys(keyList=["q","space"],waitRelease=False,timeStamped=trialClock) # get just the first time space was pressed
 
     print(keys)
-    if len(keys) > 0:
+    if len(keys) > 0: # record only the first button press
         keys = keys[0]
         response = keys[0]
         latency = round((keys[1])*1000) # convert to ms
