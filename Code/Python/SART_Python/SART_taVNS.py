@@ -426,27 +426,31 @@ def practice_trial(digitvalue,fontsize):
     # set up digit
     digit.draw()
 
+    # Set keyboard presses to none
+    key_pressed = False
+
     # Start recording button presses <- Trial Timer Start
     event.clearEvents()
     trialClock.reset()
-    
+
     # show digit <- Digit Presentation
     mywin.logOnFlip(level=logging.EXP, msg='digit start')
-    mywin.flip()
-    digitperiod.start(parameters['digitpresentationtime'])  # start a period of 0.25s
+    while trialClock().getTime() <= parameters['digitpresentationtime']:
+        mywin.flip()
+        if key_pressed == False:
+            keys = event.getKeys(keyList=["q","space"],waitRelease=False,timeStamped=trialClock) # get just the first time space was pressed
+
+        #digitperiod.start(parameters['digitpresentationtime'])  # start a period of 0.25s
 
     # Set up Fixation Mask
     fixation.draw()
-    # wait for digit time to complete
-    digitperiod.complete()
 
-    # Show fixation
-    mywin.flip()
-    maskperiod.start(parameters['maskpresentationtime'])  # start a period of 0.9s
-    maskperiod.complete()
+    mywin.logOnFlip(level=logging.EXP, msg='mask start')
+    while trialClock().getTime() <= parameters['maskpresentationtime']:
+        mywin.flip()
+        if key_pressed == False:
+            keys = event.getKeys(keyList=["q","space"],waitRelease=False,timeStamped=trialClock) # get just the first time space was pressed
 
-    # get button responses
-    keys = event.getKeys(keyList=["q","space"],timeStamped=trialClock) # get just the first time space was pressed
     print('keys are {}'.format(keys))
     if len(keys) > 0:
         keys = keys[0]
