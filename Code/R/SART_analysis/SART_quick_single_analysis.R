@@ -103,7 +103,7 @@ calc_event_metrics <- function(accuracy,RT,anticipations,commissions,omissions,b
 myPalette <- c("#8961b3","#b55960","#999c47")
 
 data_dir <- getwd()
-data_dir <- sub('/Code/R','/Data/SART_Microstudy',data_dir)
+data_dir <- sub('/Code/R','/Data/SART_Microstudy/Behavior/',data_dir)
 
 file_names <- list.files(path=data_dir,pattern='*.csv')
 
@@ -120,7 +120,7 @@ for(f in file_names){
       tmp[tmp$blocknum>2,]$stimblock =1
     }
   }
-
+  tmp$filename <- f
   if(make_table==1){
     data <- tmp
     make_table=0
@@ -138,6 +138,17 @@ data <- data %>% group_by(subject,blocknum) %>% mutate(btrial = row_number())
 # change variables to factors
 data$stimblock <- as.factor(data$stimblock)
 data$subject <- as.factor(data$subject)
+
+#### Visualize raw RT data ####
+
+# ggplot(data,aes(x=values.RT,fill=subject))+
+#   geom_histogram()+
+#   facet_wrap(c('subject'))+
+#   scale_fill_discrete(name = '',labels=c('New RT logger','Old RT Logger'))+
+#   ggpubr::theme_pubclean()+
+#   xlab('Reaction Time (ms)')+
+#   ylab('Count')
+
 
 #### Compute additional metrics ####
 

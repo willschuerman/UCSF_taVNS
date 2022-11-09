@@ -12,8 +12,8 @@
 ##############################################################################################################
 ##############################################################################################################
 from __future__ import division
-from psychopy import visual, core, gui,event, logging, info
 from psychopy.hardware import keyboard
+from psychopy import visual, core, gui,event, logging, info
 import numpy as np
 import random
 import csv
@@ -60,7 +60,6 @@ cognitiveloadsart = "CognitiveLoadSART.mp3"
 # can change these to be psychopy/python versions, but hopefully won't be necessary
 
 kb = keyboard.Keyboard()
-
 defaults = {'fontstyle': 'Arial',
     'fontsize' : 0.05,
     'txbgcolor': 'white',
@@ -86,7 +85,7 @@ data = {'columns':('build','computer.platform','date','time','subject','group','
 }
 
 
-lastLog = logging.LogFile("logs\{}_{}_tvns_sart.log".format(subject,group), level=logging.INFO, filemode='w')
+#lastLog = logging.LogFile("logs\{}_{}_tvns_sart.log".format(subject,group), level=logging.INFO, filemode='w')
 ##############################################################################################################
 ##############################################################################################################
 #	VALUES: automatically updated
@@ -137,27 +136,6 @@ summary_data = []
 mywin = visual.Window(monitor="testMonitor", units="deg",
     color=defaults['screencolor'],fullscr=True) # this initializes the window as black, which is what I seem to remember. 
 
-getReadyText = visual.TextStim(mywin, text=getReady_Params['items'],
-    font=getReady_Params['fontstyle'], # To do: not sure we have the 'Symbol' font, may need to add
-    units='norm',
-    height = getReady_Params['size'][1], # it might be close enough like this? # ToDo
-    color=(1,1,1), # white
-    pos=(0,0))
-
-intro_page = visual.TextStim(mywin, text=page['intro'],
-    font='Arial', # To do: not sure we have the 'Symbol' font, may need to add
-    units='norm',
-    height = 0.05, # it might be close enough like this?
-    color=(1,1,1), # white
-    pos=(0,0))
-
-practiceend_page = visual.TextStim(mywin, text=page['practiceend'],
-    font=getReady_Params['fontstyle'], # To do: not sure we have the 'Symbol' font, may need to add
-    units='norm',
-    height = getReady_Params['size'][1], # it might be close enough like this? # ToDo
-    color=(1,1,1), # white
-    pos=(0,0))
-
 # initialize text digit <- updated on every trial
 digit = visual.TextStim(mywin, text='',
     font=defaults['fontstyle'], # To do: not sure we have the 'Symbol' font, may need to add
@@ -170,50 +148,54 @@ digit.autoDraw = False  # Automatically draw every frame
 fixation = visual.ImageStim(mywin,image=mask,units='height',size=0.2)
 fixation.height = 0.2
 
-errorfeedback = visual.TextStim(mywin, text='Incorrect',
-    font=defaults['fontstyle'], # To do: not sure we have the 'Symbol' font, may need to add
-    units='height',
-    height=0.04, 
-    color=(1,-1,-1), # red
-    pos=(0,0))
-errorfeedback.autoDraw = False  # Automatically draw every frame
-
 ###
 
 ### run test
 pretrialpause = parameters['ITI']
-for tr in range(20):
+for tr in range(10):
     # wait for the inter-trial-interval
     core.wait(pretrialpause)
 
     # set up digit
+    digit.text = tr
     digit.draw()
 
     # Start recording button presses <- Trial Timer Start
     event.clearEvents()
     trialClock.reset()
-
-    # show digit <- Digit Presentation
-    mywin.logOnFlip(level=logging.EXP, msg='digit start')
-    while trialClock().getTime() <= parameters['digitpresentationtime']:
-        mywin.flip()
-
-        #digitperiod.start(parameters['digitpresentationtime'])  # start a period of 0.25s
-
+    kb.clearEvents()
+    kb.clock.reset()
+    
+    # show digit
+    mywin.flip()
+    digitperiod.start(parameters['digitpresentationtime'])  # start a period of 0.25s
+    
     # Set up Fixation Mask
     fixation.draw()
-    mywin.logOnFlip(level=logging.EXP, msg='mask start')
-    while trialClock().getTime() <= parameters['maskpresentationtime']:
-        mywin.flip()
-    
-    
-    keys = event.getKeys(keyList=["q","space"],waitRelease=False,timeStamped=trialClock) # get just the first time space was pressed
 
-    print(keys)
-    if len(keys) > 0: # record only the first button press
-        keys = keys[0]
-        response = keys[0]
-        latency = round((keys[1])*1000) # convert to ms
-    else:
-        response = "0"
-        latency = 0
+    # wait for digit time to complete
+    digitperiod.complete()
+    
+    # show mask
+    mywin.flip()
+    maskperiod.start(parameters['maskpresentationtime'])  # start a period of 0.9s
+    maskperiod.complete() 
+    
+    keys = kb.getKeys(keyList=["q","space"],waitRelease=False) # get just the first time space was pressed
+    
+    print(keys.count)
+    print(len(keys))
+    if len(keys)>0:
+        print(keys[0].name,keys[0].tDown,keys[0].rt,round(keys[0].rt*1000))
+    #for thisKey in keys:
+        #print(thisKey.name[0], thisKey.tDown[0],thisKey.rt)
+    
+#    print(keys)
+#    if len(keys) > 0: # record only the first button press
+#        keys = keys[0]
+#        response = keys[0]
+#        latency = round((keys[1])*1000) # convert to ms
+#    else:
+#        response = "0"
+#        latency = 0
+#    print("latency was {}".format(latency))
