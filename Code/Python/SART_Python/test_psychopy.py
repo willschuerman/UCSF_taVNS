@@ -12,17 +12,14 @@
 ##############################################################################################################
 ##############################################################################################################
 from __future__ import division
-from psychopy import visual, core, gui,event, keyboard, logging, info
+from psychopy import visual, core, gui,event, logging, info
+from psychopy.hardware import keyboard
 import numpy as np
 import random
 import csv
 from datetime import date,datetime
 import sys
 import platform
-import nidaqmx
-from nidaqmx import constants
-from nidaqmx.stream_writers import AnalogSingleChannelWriter
-from scipy import signal
 
 ##############################################################################################################
 ##############################################################################################################
