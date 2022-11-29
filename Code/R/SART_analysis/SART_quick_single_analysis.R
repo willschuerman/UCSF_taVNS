@@ -99,8 +99,6 @@ calc_event_metrics <- function(accuracy,RT,anticipations,commissions,omissions,b
   return(event_data)
 }
 
-# define custom color palette
-myPalette <- c("#8961b3","#b55960","#999c47")
 
 data_dir <- getwd()
 data_dir <- sub('/Code/R','/Data/SART_Microstudy/Behavior/',data_dir)
@@ -138,6 +136,8 @@ data <- data %>% group_by(subject,blocknum) %>% mutate(btrial = row_number())
 # change variables to factors
 data$stimblock <- as.factor(data$stimblock)
 data$subject <- as.factor(data$subject)
+
+
 
 #### Visualize raw RT data ####
 
@@ -244,7 +244,10 @@ ggplot(accuracy.summary[accuracy.summary$blocknum>0 &
        aes(x=blocknum,y=value,fill=variable))+
   geom_bar(stat='identity',position=position_dodge())+
   ggpubr::theme_pubclean()+
-  scale_fill_viridis_d(end=0.8,labels=c('NOGO', 'GO', 'Total'))
+  scale_fill_viridis_d(end=0.8,labels=c('NOGO', 'GO', 'Total'),
+                       name='Trial Type')+
+  xlab("Block")+
+  ylab("Count")
 
 
 ggplot(accuracy.summary[accuracy.summary$blocknum>0 & 
@@ -300,14 +303,7 @@ ggplot(d[d$blocknum>0,],aes(x=blocknum,y=values.RT,color=stimblock,group=trialco
   facet_wrap('subject')+
   ylab('Reaction Time (ms)')
 
-d <- summarySE(data,measurevar='correct',groupvars=c('blocknum','stimblock','subject'))
-ggplot(d[d$blocknum>0,],aes(x=blocknum,y=correct,color=subject,shape=stimblock,group=subject))+
-  geom_point(size=3)+
-  geom_line()+
-  geom_errorbar(aes(ymin=correct-ci,ymax=correct+ci),width=0.1)+
-  ggpubr::theme_pubclean()+
-  scale_color_manual(values=myPalette)+
-  ylab('accuracy')
+
 
 d <- summarySE(data[data$blocknum>0,],measurevar='correct',groupvars=c('blocknum','stimblock','trialcode','subject'))
 ggplot(d[d$blocknum>0,],aes(x=blocknum,y=correct,color=stimblock,group=trialcode,shape=trialcode))+
@@ -315,9 +311,29 @@ ggplot(d[d$blocknum>0,],aes(x=blocknum,y=correct,color=stimblock,group=trialcode
   geom_errorbar(aes(ymin=correct-ci,ymax=correct+ci),width=0.1,
                 position=position_dodge(0.3))+
   ggpubr::theme_pubclean()+
-  scale_color_manual(values=myPalette)+
+  scale_color_manual(values=myPalette,name='tVNS',labels=c('sham','stim'))+
+  scale_shape_manual(values=c(19,17),name='Trial Type')+
   facet_wrap('subject')+
-  ylab('accuracy')
+  ylab('Accuracy')+
+  xlab('Block Number')
+
+
+d <- as.data.frame(with(data[data$subject=='501',],xtabs(~values.responsetype+blocknum)))
+d$subject = '501'
+tmp <- as.data.frame(with(data[data$subject=='502',],xtabs(~values.responsetype+blocknum)))
+tmp$subject = '502'
+d <- rbind(d,tmp)
+
+
+ggplot(d[d$blocknum!=0,],aes(y=Freq,x=blocknum,fill=values.responsetype))+
+  geom_bar(stat='identity',position=position_dodge(),color='black')+
+  facet_wrap(c('subject'))+
+  ggpubr::theme_pubclean()+
+  scale_fill_discrete(name='Respone Type')+
+  #scale_shape_manual(values=c(19,17),name='Trial Type')+
+  ylab('Count')+
+  xlab('Block Number')
+
 
 
 
