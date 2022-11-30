@@ -138,7 +138,6 @@ data$stimblock <- as.factor(data$stimblock)
 data$subject <- as.factor(data$subject)
 
 
-
 #### Visualize raw RT data ####
 
 # ggplot(data,aes(x=values.RT,fill=subject))+
@@ -169,7 +168,6 @@ data$anticipation <- ifelse(data$values.RT<100 & data$values.RT>0,1,0)
 # 2.2 Lag RT (average of 8 trials surrounding anticipation or omission)
 data <- data %>% group_by(blocknum) %>%
   mutate(rollingmean = rollmean(values.RT,k=9,fill=NA))
-
 
 # 3. Summary stats
 
@@ -334,40 +332,9 @@ ggplot(d[d$blocknum!=0,],aes(y=Freq,x=blocknum,fill=values.responsetype))+
   ylab('Count')+
   xlab('Block Number')
 
-
-
-
-
-##### test #####
-
-
-
-ggplot(data,aes(x=values.RT))+
-  geom_histogram(binwidth=1)+
-  facet_wrap('subject')+
-  ggpubr::theme_pubclean()
-
-
-
-
 ggplot(data[data$blockcode=='SART',],aes(x=values.RT))+
   geom_histogram(binwidth=30)+
   facet_grid(subject~.,scales='free')+
   ggpubr::theme_pubclean()
 
 
-
-
-
-tmp <- data[data$blocknum==1 & data$subject=='501',]
-error_idx <- which(tmp$correct==0)
-
-
-
-er <- error_idx[1]
-dat <- tmp$values.RT[seq(er-4,er+4)]
-plot(dat)
-for(er in error_idx[-1]){
-  dat <- tmp$values.RT[seq(er-4,er+4)]
-  points(dat)
-}
