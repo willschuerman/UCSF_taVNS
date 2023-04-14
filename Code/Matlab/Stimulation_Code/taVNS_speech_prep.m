@@ -1,4 +1,4 @@
-function multiStimTrain_triggered(amp, pw, freq, npulse, expDur, iti)
+function taVNS_speech_prep(amp, stimFlag, pw, freq, npulse, expDur, iti)
     %singleStimTrain.m Takes a single stim waveform and presents it once.
     %
     % Inputs: 
@@ -12,7 +12,22 @@ function multiStimTrain_triggered(amp, pw, freq, npulse, expDur, iti)
     % Outputs:
     %   none
 
+% DEFAULTS
+clc;
+if nargin < 1; error('PLEASE ENTER AMPLITUDE!'); end;
+if nargin < 6
+    if ~exist('pw','var'); pw = 100; end;
+    if ~exist('freq','var'); freq = 30; end;
+    if ~exist('npulse','var'); npulse = 30; end;
+    if ~exist('expDur','var'); expDur = 300; end;
+    if ~exist('iti','var'); iti = 7.5; end;
+    if ~exist('stimFlag','var'); stimFlag = 1; end;
+end
+
+iti = iti-1.2; % offset to account for delays
+
 % remind user to start in voltage mode
+fprintf('General parameters should be amp=(depends on participant), stimFlag=(experimenter determines), pw=100, freq=30, npulse=30, expDur=300, iti=7.5\n')
 prompt = 'Switch to Current mode and press enter to stimulate.';
 x = input(prompt);
 
@@ -43,19 +58,25 @@ expStart = tic;
 elapsedDur = toc(expStart);
 
 while elapsedDur < expDur
+    trlDur = tic;
     elapsedDur = toc(expStart);
 
     queueOutputData(Stim, buf');
 
     % initiate stimulation
 
-    Stim.startForeground         % stim on
-    pause(1); % wait 1 seconds after end of stimulation to move on.
+    if stimFlag
+        Stim.startForeground         % stim on
+        %     pause(1); % wait 1 seconds after end of stimulation to move on.
 
-    Stim.stop();
-    Stim.release();
+        Stim.stop();
+        Stim.release();
+    else
+        pause(1.2); % to account for lack of stim delay
+    end
 
     pause(iti);
+    toc(trlDur)
 end
 
 prompt = 'Switch to Voltage mode if finished.';
